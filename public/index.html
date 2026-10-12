@@ -44,10 +44,83 @@
             <a href="#contact">Contact</a>
         </nav>
 
-        <div class="nav-actions">
-            <a href="./login.html" class="login-link">♙Login</a>
-            <a href="./register.html" class="signup-button">Sign Up</a>
+        
+<div class="nav-actions" id="nav-actions">
+  <div id="logged-out-actions">
+    <a href="./login.html" class="login-link">♙ Login</a>
+    <a href="./register.html" class="signup-button">Sign Up</a>
+  </div>
+
+  <div class="profile-menu" id="profile-menu" hidden>
+    <button
+      class="profile-trigger"
+      id="profile-trigger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="profile-dropdown"
+    >
+      <span class="profile-avatar" id="nav-avatar">PR</span>
+      <span class="profile-trigger-text">
+        <strong id="nav-profile-name">My Account</strong>
+        <small>My Account</small>
+      </span>
+      <span aria-hidden="true"></span>
+    </button>
+
+    <div class="profile-dropdown" id="profile-dropdown" hidden>
+      <div class="profile-summary">
+        <span class="profile-avatar profile-avatar-large" id="dropdown-avatar">PR</span>
+        <div class="profile-summary-text">
+          <strong id="dropdown-name">Your Name</strong>
+          <span id="dropdown-email">your@email.com</span>
+          <small>Drive Easy Member</small>
         </div>
+      </div>
+
+      <div class="profile-divider"></div>
+
+      <button type="button" class="profile-option" data-profile-action="my-profile">
+        <span class="profile-option-icon">♙</span>
+        <span><strong>My Profile</strong><small>View and edit personal details.</small></span>
+      </button>
+
+      <button type="button" class="profile-option" data-profile-action="bookings">
+        <span class="profile-option-icon">▣</span>
+        <span><strong>My Bookings</strong><small>View upcoming and previous car bookings.</small></span>
+      </button>
+
+      <button type="button" class="profile-option" data-profile-action="saved-cars">
+        <span class="profile-option-icon">♡</span>
+        <span><strong>Saved Cars</strong><small>Access favorite vehicles.</small></span>
+      </button>
+
+      <button type="button" class="profile-option" data-profile-action="settings">
+        <span class="profile-option-icon">⚙</span>
+        <span><strong>Account Settings</strong><small>Manage account information and password.</small></span>
+      </button>
+
+      <div class="profile-divider"></div>
+
+      <button type="button" class="profile-option profile-upload-option" id="change-profile-photo">
+        <span class="profile-option-icon">📷</span>
+        <span><strong>Change Profile Photo</strong><small>Choose a JPG, PNG, or WebP image.</small></span>
+      </button>
+
+      <input
+        type="file"
+        id="profile-photo-input"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+      />
+
+      <p class="profile-feedback" id="profile-feedback" role="status" aria-live="polite"></p>
+
+      <button type="button" class="profile-logout" id="profile-logout">
+        ↪ Log Out
+      </button>
+    </div>
+  </div>
+</div>
 
     </header>
 

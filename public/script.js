@@ -744,3 +744,313 @@ homeLinks.forEach(function (link) {
         }
     });
 });
+
+
+/* ==========================================
+   DRIVE EASY — LOGGED-IN PROFILE
+   ========================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const loggedOutActions = document.getElementById("logged-out-actions");
+  const profileMenu = document.getElementById("profile-menu");
+  const profileTrigger = document.getElementById("profile-trigger");
+  const profileDropdown = document.getElementById("profile-dropdown");
+  const navAvatar = document.getElementById("nav-avatar");
+  const dropdownAvatar = document.getElementById("dropdown-avatar");
+  const navName = document.getElementById("nav-profile-name");
+  const dropdownName = document.getElementById("dropdown-name");
+  const dropdownEmail = document.getElementById("dropdown-email");
+  const photoInput = document.getElementById("profile-photo-input");
+  const changePhotoButton = document.getElementById("change-profile-photo");
+  const feedback = document.getElementById("profile-feedback");
+  const logoutButton = document.getElementById("profile-logout");
+
+  // This script is also loaded on pages that may not have the navbar.
+  if (
+    !loggedOutActions ||
+    !profileMenu ||
+    !profileTrigger ||
+    !profileDropdown
+  ) {
+    return;
+  }
+
+  let currentUser = null;
+
+  function getInitials(name) {
+    const words = String(name || "Drive Easy")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (words.length === 0) return "DE";
+
+    return words
+      .slice(0, 2)
+      .map((word) => Array.from(word)[0])
+      .join("")
+      .toUpperCase();
+  }
+
+  function renderAvatar(element, name, photoUrl) {
+    if (!element) return;
+
+    // Use initials as the default, without a photo.
+    element.replaceChildren();
+    element.textContent = getInitials(name);
+
+    if (!photoUrl) return;
+
+    const image = document.createElement("img");
+    image.alt = "Profile photo";
+    image.src = photoUrl;
+    image.addEventListener("error", () => {
+      image.remove();
+      element.textContent = getInitials(name);
+    }, { once: true });
+
+    element.textContent = "";
+    element.appendChild(image);
+  }
+
+  function setFeedback(message, isError = false) {
+    if (!feedback) return;
+
+    feedback.textContent = message;
+    feedback.style.color = isError ? "#c81e2b" : "#475569";
+  }
+
+  function closeDropdown() {
+    profileDropdown.hidden = true;
+    profileTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  function openDropdown() {
+    profileDropdown.hidden = false;
+    profileTrigger.setAttribute("aria-expanded", "true");
+  }
+
+  function renderUser(user) {
+    currentUser = user;
+
+    const loggedIn = Boolean(user);
+
+    loggedOutActions.hidden = loggedIn;
+    profileMenu.hidden = !loggedIn;
+
+    if (!loggedIn) {
+      closeDropdown();
+      return;
+    }
+
+    const name = user.name || "Drive Easy Member";
+    const photo = user.profilePhoto || "";
+
+    navName.textContent = name;
+    dropdownName.textContent = name;
+    dropdownEmail.textContent = user.email || "";
+
+    renderAvatar(navAvatar, name, photo);
+    renderAvatar(dropdownAvatar, name, photo);
+  }
+
+  async function loadCurrentUser() {
+    try {
+      const response = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json"
+        }
+      });
+
+      if (response.status === 401) {
+        renderUser(null);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Could not load your account.");
+      }
+
+      const result = await response.json();
+      renderUser(result.user || null);
+    } catch (error) {
+      console.error("Profile loading error:", error);
+      // Do not break the homepage if the API is temporarily unavailable.
+    }
+  }
+
+  profileTrigger.addEventListener("click", () => {
+    if (profileDropdown.hidden) {
+      openDropdown();
+    } else {
+      closeDropdown();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (
+      !profileMenu.hidden &&
+      !profileMenu.contains(event.target)
+    ) {
+      closeDropdown();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeDropdown();
+    }
+  });
+
+  // Open the file picker for the user's profile photo.
+  changePhotoButton?.addEventListener("click", () => {
+    photoInput?.click();
+  });
+
+  photoInput?.addEventListener("change", async () => {
+    const file = photoInput.files?.[0];
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setFeedback("Choose a JPG, PNG, or WebP image.", true);
+      photoInput.value = "";
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setFeedback("Your photo must be 3 MB or smaller.", true);
+      photoInput.value = "";
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    if (changePhotoButton) {
+      changePhotoButton.disabled = true;
+    }
+
+    setFeedback("Uploading your profile photo...");
+
+    try {
+      const response = await fetch("/api/auth/profile-photo", {
+        method: "POST",
+        credentials: "same-origin",
+        body: formData
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Unable to upload your photo."
+        );
+      }
+
+      // Refresh the profile using the saved server-side data.
+      await loadCurrentUser();
+
+      setFeedback("Your profile photo has been updated.");
+    } catch (error) {
+      console.error("Photo upload error:", error);
+      setFeedback(error.message || "Photo upload failed.", true);
+    } finally {
+      if (changePhotoButton) {
+        changePhotoButton.disabled = false;
+      }
+
+      photoInput.value = "";
+    }
+  });
+
+  // Connect menu options to features that currently exist.
+  document.querySelectorAll("[data-profile-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.profileAction;
+      closeDropdown();
+
+      if (action === "bookings") {
+        const bookingsSection = document.getElementById("demo-bookings");
+
+        if (bookingsSection) {
+          bookingsSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        } else {
+          window.location.href = "/#demo-bookings";
+        }
+
+        return;
+      }
+
+      if (action === "my-profile" && currentUser) {
+        window.alert(
+          "My Profile\n\n" +
+          "Name: " + currentUser.name + "\n" +
+          "Email: " + currentUser.email +
+          "\n\nProfile editing can be added next."
+        );
+
+        return;
+      }
+
+      if (action === "saved-cars") {
+        window.alert(
+          "Saved Cars is not implemented yet. " +
+          "We can build the favorites feature next."
+        );
+
+        return;
+      }
+
+      if (action === "settings") {
+        window.alert(
+          "Account Settings is not implemented yet. " +
+          "We can add secure profile editing and password changes next."
+        );
+      }
+    });
+  });
+
+  logoutButton?.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+    logoutButton.textContent = "Logging out...";
+
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json"
+        }
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.message || "Logout failed.");
+      }
+
+      renderUser(null);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+      setFeedback(error.message || "Unable to log out.", true);
+
+      logoutButton.disabled = false;
+      logoutButton.textContent = "↪ Log Out";
+    }
+  });
+
+  loadCurrentUser();
+});
