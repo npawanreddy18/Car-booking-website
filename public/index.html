@@ -1,0 +1,608 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="DriveEasy car rentals. Find and book your next ride.">
+
+    <meta name="theme-color" content="#10284c">
+
+    <title>DriveEasy | Car Rental &amp; Booking</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="navbar" id="home">
+
+        <a href="#home" class="logo" aria-label="DriveEasy home">
+            <span class="logo-icon" aria-hidden="true">🚘</span>
+            Drive<span class="logo-red">Easy</span>
+        </a>
+
+        <button
+            class="menu-toggle"
+            id="menu-toggle"
+            type="button"
+            aria-label="Toggle navigation"
+            aria-expanded="false"
+            aria-controls="nav-links">
+            ☰
+        </button>
+
+        <nav class="nav-links" id="nav-links" aria-label="Main navigation">
+            <a href="#home" class="active">Home</a>
+            <a href="#cars">Cars</a>
+            <a href="#demo-bookings">Bookings</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="nav-actions">
+            <a href="./login.html" class="login-link">♙ Login</a>
+            <a href="./register.html" class="signup-button">Sign Up</a>
+        </div>
+
+    </header>
+
+    <main>
+
+        <!-- HERO -->
+        <section class="hero" id="hero">
+            <div class="hero-content">
+
+                <p class="eyebrow">RENT THE PERFECT CAR</p>
+
+                <h1>Your Journey,<br>Our Priority</h1>
+
+                <p class="hero-description">
+                    Book the best cars at the best prices.
+                    Enjoy a smooth, safe and comfortable ride
+                    wherever you go.
+                </p>
+
+                <a href="#booking" class="primary-button">
+                    Find Your Car →
+                </a>
+
+            </div>
+        </section>
+
+        <!-- BOOKING SEARCH -->
+        <section class="booking-section" id="booking">
+
+            <form id="booking-form" class="booking-form">
+
+                <label class="booking-field" for="location">
+                    <span class="field-icon" aria-hidden="true">📍</span>
+
+                    <span class="field-content">
+                        <span class="field-title">Pick-up Location</span>
+
+                        <select id="location" name="location" required>
+                            <option value="">Select location</option>
+                            <option value="Bengaluru">Bengaluru</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Chennai">Chennai</option>
+                            <option value="Mumbai">Mumbai</option>
+                        </select>
+                    </span>
+                </label>
+
+                <label class="booking-field" for="pickup">
+                    <span class="field-icon" aria-hidden="true">▦</span>
+
+                    <span class="field-content">
+                        <span class="field-title">Pick-up Date</span>
+
+                        <input
+                            type="date"
+                            id="pickup"
+                            name="pickup"
+                            required>
+                    </span>
+                </label>
+
+                <label class="booking-field" for="return">
+                    <span class="field-icon" aria-hidden="true">▦</span>
+
+                    <span class="field-content">
+                        <span class="field-title">Drop-off Date</span>
+
+                        <input
+                            type="date"
+                            id="return"
+                            name="return"
+                            required>
+                    </span>
+                </label>
+
+                <label class="booking-field" for="car-type">
+                    <span class="field-icon" aria-hidden="true">🚘</span>
+
+                    <span class="field-content">
+                        <span class="field-title">Car Type</span>
+
+                        <select id="car-type" name="carType">
+                            <option value="all">All Types</option>
+                            <option value="economy">Economy</option>
+                            <option value="suv">SUV</option>
+                            <option value="luxury">Luxury</option>
+                        </select>
+                    </span>
+                </label>
+
+                <button type="submit" class="search-button">
+                    <span aria-hidden="true">⌕</span>
+                    Search Cars
+                </button>
+
+            </form>
+
+            <p id="booking-message" role="status" aria-live="polite"></p>
+
+        </section>
+
+        <!-- FEATURED CARS -->
+        <section class="cars-section" id="cars">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Featured Cars</h2>
+                    <p>
+                        Choose from our range of comfortable
+                        and reliable cars.
+                    </p>
+                </div>
+
+                <button type="button" id="view-all" class="view-all">
+                    View All Cars →
+                </button>
+            </div>
+
+            <div class="car-grid" id="car-grid">
+
+                <!-- CAR 1: AUDI Q3 -->
+                <article class="car-card" data-type="luxury">
+
+                    <div class="car-image">
+                        <img
+                            src="images/Audi Q3 revealed suv car2.jpg"
+                            alt="Audi Q3 luxury rental car"
+                            loading="lazy">
+
+                        <span class="car-badge luxury-badge">Luxury</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>Audi Q3</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⛽ Petrol</span>
+                            <span>⚙ Automatic</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹3,500 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="Audi Q3"
+                                data-price="3500">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- CAR 2: TATA TIAGO -->
+                <article class="car-card" data-type="economy">
+
+                    <div class="car-image">
+                        <img
+                            src="images/tata economy car1.jpg"
+                            alt="Tata Tiago economy rental car"
+                            loading="lazy">
+
+                        <span class="car-badge economy-badge">Economy</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>Tata Tiago</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⛽ Petrol</span>
+                            <span>⚙ Automatic</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹1,500 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="Tata Tiago"
+                                data-price="1500">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- CAR 3: BMW 3 SERIES -->
+                <article class="car-card" data-type="luxury">
+
+                    <div class="car-image">
+                        <img
+                            src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&amp;fit=crop&amp;w=900&amp;q=85"
+                            alt="BMW luxury rental car"
+                            loading="lazy">
+
+                        <span class="car-badge luxury-badge">Luxury</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>BMW 3 Series</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⛽ Petrol</span>
+                            <span>⚙ Automatic</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹5,000 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="BMW 3 Series"
+                                data-price="5000">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- CAR 4: MAHINDRA XEV SUV -->
+                <article class="car-card" data-type="suv">
+
+                    <div class="car-image">
+                        <img
+                            src="images/suv car1.jpg"
+                            alt="Mahindra SUV rental vehicle"
+                            loading="lazy">
+
+                        <span class="car-badge suv-badge">SUV</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>Mahindra XEV SUV</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⚡ Electric</span>
+                            <span>⚙ Automatic</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹3,200 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="Mahindra XEV SUV"
+                                data-price="3200">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- CAR 5: HYUNDAI I20 -->
+                <article class="car-card" data-type="economy">
+
+                    <div class="car-image">
+                        <img
+                            src="images/Hyundai i20 economy car2.jpg"
+                            alt="Hyundai i20 economy rental car"
+                            loading="lazy">
+
+                        <span class="car-badge economy-badge">Economy</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>Hyundai i20</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⛽ Petrol</span>
+                            <span>⚙ Automatic</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹1,800 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="Hyundai i20"
+                                data-price="1800">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- CAR 6: BMW 760I -->
+                <article class="car-card" data-type="luxury">
+
+                    <div class="car-image">
+                        <img
+                            src="images/BMW 760i suv car4.jpg"
+                            alt="BMW 760i luxury rental car"
+                            loading="lazy">
+
+                        <span class="car-badge luxury-badge">Luxury</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>BMW 760i</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⛽ Petrol</span>
+                            <span>⚙ Automatic</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹5,500 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="BMW 760i"
+                                data-price="5500">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- CAR 7: MAHINDRA XUV 7XO -->
+                <article class="car-card" data-type="suv">
+
+                    <div class="car-image">
+                        <img
+                            src="images/Mahindra XUV 7XO car3.png"
+                            alt="Mahindra XUV 7XO SUV"
+                            loading="lazy">
+
+                        <span class="car-badge suv-badge">SUV</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>Mahindra XUV 7XO</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⛽ Diesel</span>
+                            <span>⚙ Manual</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹2,000 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="Mahindra XUV 7XO"
+                                data-price="2000">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+                <!-- CAR 8: MERCEDES G-CLASS -->
+                <article class="car-card" data-type="luxury">
+
+                    <div class="car-image">
+                        <img
+                            src="images/Benz G class.jpg"
+                            alt="Mercedes-Benz G-Class luxury rental SUV"
+                            loading="lazy">
+
+                        <span class="car-badge luxury-badge">Luxury</span>
+                    </div>
+
+                    <div class="car-info">
+                        <h3>Mercedes G-Class</h3>
+
+                        <div class="car-specs">
+                            <span>♙ 5 Seats</span>
+                            <span>⛽ Petrol</span>
+                            <span>⚙ Automatic</span>
+                        </div>
+
+                        <div class="car-footer">
+                            <p class="price">
+                                ₹5,800 <small>/ day</small>
+                            </p>
+
+                            <button
+                                type="button"
+                                class="book-button"
+                                data-car="Mercedes G-Class"
+                                data-price="5800">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                </article>
+
+            </div>
+
+            <p id="no-cars" class="no-cars" hidden>
+                No cars match your selected category.
+                Try another category.
+            </p>
+
+        </section>
+
+        <!-- MY DEMO BOOKINGS -->
+        <section id="demo-bookings" class="demo-bookings">
+
+            <h2>My Bookings</h2>
+
+            <p>
+                View demo bookings saved in this browser.
+                These are not real reservations.
+            </p>
+
+            <div id="demo-bookings-list" aria-live="polite">
+                <p>No demo bookings yet.</p>
+            </div>
+
+            <button type="button" id="clear-demo-bookings">
+                Clear Demo Bookings
+            </button>
+
+        </section>
+
+        <!-- BENEFITS -->
+        <section class="benefits-section" id="about">
+
+            <div class="benefit">
+                <div class="benefit-icon" aria-hidden="true">♢</div>
+                <div>
+                    <h3>Safe &amp; Secure</h3>
+                    <p>Your safety is our top priority.</p>
+                </div>
+            </div>
+
+            <div class="benefit">
+                <div class="benefit-icon" aria-hidden="true">◇</div>
+                <div>
+                    <h3>Best Prices</h3>
+                    <p>Enjoy clear, competitive rates.</p>
+                </div>
+            </div>
+
+            <div class="benefit">
+                <div class="benefit-icon" aria-hidden="true">☏</div>
+                <div>
+                    <h3>24/7 Support</h3>
+                    <p>We're here to help.</p>
+                </div>
+            </div>
+
+            <div class="benefit">
+                <div class="benefit-icon" aria-hidden="true">⌖</div>
+                <div>
+                    <h3>Multiple Locations</h3>
+                    <p>Choose your pickup city.</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer" id="contact">
+
+        <div class="footer-main">
+
+            <div>
+                <a href="#home" class="logo footer-logo"
+                   aria-label="DriveEasy home">
+                    Drive<span class="logo-red">Easy</span>
+                </a>
+
+                <p>Your journey, our priority.</p>
+            </div>
+
+            <div class="footer-links">
+                <a href="#home">Home</a>
+                <a href="#cars">Our Cars</a>
+                <a href="#about">About Us</a>
+                <a href="mailto:support@example.com">Contact</a>
+            </div>
+
+        </div>
+
+        <p class="copyright">
+            © <span id="current-year"></span> DriveEasy.
+            All rights reserved.
+        </p>
+
+    </footer>
+
+    <!-- BOOKING REVIEW DIALOG -->
+    <dialog id="booking-dialog" class="booking-dialog"
+            aria-labelledby="booking-dialog-title">
+
+        <div class="dialog-content">
+
+            <button
+                type="button"
+                class="dialog-close"
+                id="dialog-close"
+                aria-label="Close dialog">
+                ×
+            </button>
+
+            <h2 id="booking-dialog-title">Review Your Booking</h2>
+
+            <div id="booking-summary"></div>
+
+            <p class="demo-notice">
+                Demo only: this does not reserve a real vehicle
+                or process payment.
+            </p>
+
+            <button
+                type="button"
+                id="confirm-demo"
+                class="primary-button dialog-confirm">
+                Confirm Demo Booking
+            </button>
+
+        </div>
+
+    </dialog>
+
+</body>
+</html>
