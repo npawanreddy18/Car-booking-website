@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="View and manage your Drive Easy car rental bookings.">
+
+    <title>My Bookings | Drive Easy</title>
+
+    <!-- Existing website styles -->
+    <link rel="stylesheet" href="./style.css">
+
+    <!-- Styles only for the My Bookings page -->
+    <link rel="stylesheet" href="./my-bookings.css">
+
+    <script src="./script.js" defer></script>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="navbar">
+        <a class="logo" href="./index.html" aria-label="Drive Easy home">
+            <span class="logo-icon">🚘</span>
+            <span>Drive <span class="logo-red">Easy</span></span>
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+            <a href="./index.html">Home</a>
+            <a href="./index.html#cars">Browse Cars</a>
+            <a href="./my-bookings.html" class="active"
+               aria-current="page">My Bookings</a>
+        </nav>
+
+        <div class="nav-actions">
+            <a class="login-link" href="./login.html">Login</a>
+            <a class="signup-button" href="./register.html">Sign Up</a>
+        </div>
+    </header>
+
+    <!-- MY BOOKINGS -->
+    <main class="my-bookings-page">
+        <section class="my-bookings-container">
+            <div class="my-bookings-heading">
+                <span class="bookings-eyebrow">YOUR ACCOUNT</span>
+                <h1>My Bookings</h1>
+                <p>
+                    View your reservations, rental details, and booking status.
+                </p>
+            </div>
+
+            <div class="bookings-toolbar">
+                <h2>Your Reservations</h2>
+                <a href="./index.html#cars" class="browse-cars-link">
+                    + Book a Car
+                </a>
+            </div>
+
+            <div id="demo-bookings-list" aria-live="polite">
+                <p class="bookings-message">Loading your bookings...</p>
+            </div>
+
+            <a href="./index.html" class="back-home-link">
+                ← Back to Home
+            </a>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-main">
+            <div>
+                <a class="logo footer-logo" href="./index.html">
+                    <span class="logo-icon">🚘</span>
+                    <span>Drive <span class="logo-red">Easy</span></span>
+                </a>
+                <p>Your journey, your way.</p>
+            </div>
+
+            <div class="footer-links">
+                <a href="./index.html">Home</a>
+                <a href="./index.html#cars">Browse Cars</a>
+                <a href="./my-bookings.html">My Bookings</a>
+            </div>
+        </div>
+
+        <p class="copyright">
+            © <span id="current-year"></span> Drive Easy. All rights reserved.
+        </p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,219 @@
+
+/* ========================================
+   DRIVE EASY — MY BOOKINGS PAGE
+   ======================================== */
+
+.my-bookings-page {
+    min-height: 65vh;
+    padding: 45px 7.5% 65px;
+    background: #f5f8fc;
+}
+
+.my-bookings-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.my-bookings-heading {
+    margin-bottom: 35px;
+}
+
+.bookings-eyebrow {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: #f52932;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.my-bookings-heading h1 {
+    margin-bottom: 8px;
+    color: #10284c;
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.2;
+}
+
+.my-bookings-heading p {
+    color: #62738e;
+    font-size: 15px;
+}
+
+.bookings-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e5eaf1;
+}
+
+.bookings-toolbar h2 {
+    color: #10284c;
+    font-size: 22px;
+}
+
+.browse-cars-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 17px;
+    border-radius: 8px;
+    background: #f52932;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.browse-cars-link:hover {
+    background: #d91f29;
+    transform: translateY(-2px);
+}
+
+/* Booking list */
+
+#demo-bookings-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 20px;
+}
+
+/* Individual booking card */
+
+#demo-bookings-list .demo-booking-card {
+    min-width: 0;
+    margin: 0;
+    padding: 24px;
+    overflow-wrap: anywhere;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(16, 40, 75, 0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#demo-bookings-list .demo-booking-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(16, 40, 75, 0.10);
+}
+
+#demo-bookings-list .demo-booking-card h3 {
+    margin: 0 0 16px;
+    color: #10284c;
+    font-size: 21px;
+    line-height: 1.4;
+}
+
+#demo-bookings-list .demo-booking-card p {
+    margin: 10px 0;
+    color: #52647d;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* Booking status */
+
+#demo-bookings-list .demo-booking-card .booking-status {
+    display: inline-block;
+    width: fit-content;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: #e8f7ee;
+    color: #16794b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#demo-bookings-list .demo-booking-card .booking-status.cancelled {
+    background: #fff0f0;
+    color: #a71922;
+}
+
+/* Empty, loading and error messages */
+
+.bookings-message,
+#demo-bookings-list > p {
+    grid-column: 1 / -1;
+    padding: 25px;
+    border: 1px solid #e5eaf1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #62738e;
+    line-height: 1.7;
+}
+
+#demo-bookings-list a {
+    color: #f52932;
+    font-weight: 700;
+}
+
+/* Back link */
+
+.back-home-link {
+    display: inline-block;
+    margin-top: 28px;
+    color: #f52932;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.back-home-link:hover {
+    text-decoration: underline;
+}
+
+/* Footer spacing */
+
+.my-bookings-page + .footer {
+    margin-top: 0;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+    .my-bookings-page {
+        padding: 35px 5% 50px;
+    }
+
+    #demo-bookings-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 650px) {
+    .my-bookings-page {
+        padding: 28px 5% 40px;
+    }
+
+    .my-bookings-heading {
+        margin-bottom: 25px;
+    }
+
+    .bookings-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .browse-cars-link {
+        width: 100%;
+    }
+
+    #demo-bookings-list .demo-booking-card {
+        padding: 18px;
+    }
+
+    #demo-bookings-list .demo-booking-card h3 {
+        font-size: 19px;
+    }
+
+    .cancel-booking-button {
+        width: 100%;
+    }
+}
+
