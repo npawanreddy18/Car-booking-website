@@ -228,6 +228,45 @@
 
         </section>
 
+        <!-- WELCOME OFFERS -->
+<section class="offers-section" id="offers">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">DRIVE EASY REWARDS</p>
+            <h2>Welcome Offers</h2>
+            <p>Enjoy extra benefits before your first successful car booking.</p>
+        </div>
+    </div>
+
+    <div class="offers-grid">
+        <article class="offer-card">
+            <div class="offer-icon" aria-hidden="true">🚕</div>
+            <span class="offer-label">NEW CUSTOMER</span>
+            <h3>Free Local Ride</h3>
+            <p>
+                Enjoy one free local ride up to 5 km before your first
+                successful car booking.
+            </p>
+            <small>One-time offer. Subject to availability and terms.</small>
+        </article>
+
+        <article class="offer-card">
+            <div class="offer-icon" aria-hidden="true">🚘</div>
+            <span class="offer-label">FIRST BOOKING</span>
+            <h3>Free Car Delivery</h3>
+            <p>
+                Get your rented car delivered free when your delivery
+                address is within 5 km of an eligible pickup hub.
+            </p>
+            <small>
+                One-time offer. Delivery distance and hub eligibility
+                must be verified.
+            </small>
+        </article>
+    </div>
+</section>
+
+
         <!-- FEATURED CARS -->
         <section class="cars-section" id="cars">
 
@@ -244,6 +283,7 @@
                     View All Cars →
                 </button>
             </div>
+
 
             <div class="car-grid" id="car-grid">
 
@@ -266,6 +306,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
+                            <span>⛽ Approx. 10-15 km/l</span>
                         </div>
 
                         <div class="car-footer">
@@ -304,6 +345,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
+                            <span>⛽ Approx. 18-20 km/l</span>
                         </div>
 
                         <div class="car-footer">
@@ -342,6 +384,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
+                            <span>⛽ Approx. 10-15 km/l</span>
                         </div>
 
                         <div class="car-footer">
@@ -380,6 +423,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⚡ Electric</span>
                             <span>⚙ Automatic</span>
+                            <span>🔋 Range varies by model</span>
                         </div>
 
                         <div class="car-footer">
@@ -418,6 +462,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
+                              <span>⛽ Approx. 15–20 km/l</span>
                         </div>
 
                         <div class="car-footer">
@@ -456,6 +501,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
+                            <span>⛽ Approx. 6–10 km/l</span>
                         </div>
 
                         <div class="car-footer">
@@ -494,6 +540,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⛽ Diesel</span>
                             <span>⚙ Manual</span>
+                            <span>⛽ Verify model-year mileage</span>
                         </div>
 
                         <div class="car-footer">
@@ -532,6 +579,7 @@
                             <span>♙ 5 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
+                             <span>⛽ Approx. 5–8 km/l</span>
                         </div>
 
                         <div class="car-footer">
@@ -569,6 +617,7 @@
                             <span>♙ 4 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
+                             <span>⛽ Approx. 5–8 km/l</span>
                         </div>
 
                         <div class="car-footer">
@@ -595,27 +644,9 @@
                 Try another category.
             </p>
 
-        </section>
+     </section>
 
-        <!-- MY DEMO BOOKINGS -->
-        <section id="demo-bookings" class="demo-bookings">
-
-            <h2>My Bookings</h2>
-
-            <p>
-                 View your reservations, booking references, rental dates,
-                 prices, and booking status.
-            </p>
-
-            <div id="demo-bookings-list" aria-live="polite">
-                <p>No demo bookings yet.</p>
-            </div>
-
-            
-
-        </section>
-
-        <!-- BENEFITS -->
+       <!-- BENEFITS -->
         <section class="benefits-section" id="about">
 
             <div class="benefit">
@@ -684,88 +715,94 @@
 
     </footer>
 
-    <!-- BOOKING REVIEW DIALOG -->
-    <dialog id="booking-dialog" class="booking-dialog"
-            aria-labelledby="booking-dialog-title">
+    ```html
+<!-- BOOKING REVIEW DIALOG -->
+<dialog
+    id="booking-dialog"
+    class="booking-dialog"
+    aria-labelledby="booking-dialog-title"
+>
+    <div class="dialog-content">
 
-        <div class="dialog-content">
-
-            <button
-                type="button"
-                class="dialog-close"
-                id="dialog-close"
-                aria-label="Close dialog">
-                ×
-            </button>
-
-            <h2 id="booking-dialog-title">Review Your Booking</h2>
-
-            <div id="booking-summary"></div>
-
-            <p class="demo-notice">
-                Review your rental details before confirming your reservation.
-               Online payment is not available yet.
-            </p>
-
-            <button
-                type="button"
-                id="confirm-demo"
-                class="primary-button dialog-confirm">
-                Confirm Booking
-         </button>
-        </div>
-    </dialog>
-
-     
-<!-- EDIT PROFILE DIALOG -->
-<dialog id="profile-edit-dialog" class="profile-edit-dialog"
-        aria-labelledby="profile-edit-title">
-    <div class="profile-edit-content">
-        <button type="button" id="profile-edit-close"
-                class="dialog-close" aria-label="Close profile editor">
+        <button
+            type="button"
+            class="dialog-close"
+            id="dialog-close"
+            aria-label="Close dialog"
+        >
             ×
         </button>
 
-        <p class="eyebrow">DRIVE EASY ACCOUNT</p>
-        <h2 id="profile-edit-title">My Profile</h2>
-        <p>Update the personal details associated with your account.</p>
+        <h2 id="booking-dialog-title">Review Your Booking</h2>
 
-        <form id="profile-edit-form">
-            <label for="profile-edit-name">Full name</label>
-            <input
-                id="profile-edit-name"
-                name="name"
-                type="text"
-                minlength="2"
-                maxlength="100"
-                autocomplete="name"
-                required>
+        <!-- Existing booking details -->
+        <div id="booking-summary"></div>
 
-            <label for="profile-edit-email">Email address</label>
-            <input
-                id="profile-edit-email"
-                name="email"
-                type="email"
-                maxlength="254"
-                autocomplete="email"
-                required>
+        <!-- Coupon section -->
+        <div class="coupon-section">
+            <label for="coupon-code">Have a coupon?</label>
 
-            <p id="profile-edit-message" role="status"
-               aria-live="polite"></p>
+            <div class="coupon-input-row">
+                <input
+                    type="text"
+                    id="coupon-code"
+                    name="couponCode"
+                    placeholder="Enter coupon code"
+                    maxlength="40"
+                    autocomplete="off"
+                    aria-describedby="coupon-message"
+                >
 
-            <div class="profile-edit-buttons">
-                <button type="button" id="profile-edit-cancel"
-                        class="profile-cancel-button">
-                    Cancel
-                </button>
-                <button type="submit" id="profile-edit-save"
-                        class="profile-save-button">
-                    Save Changes
+                <button
+                    type="button"
+                    id="apply-coupon"
+                    class="coupon-apply-button"
+                >
+                    Apply
                 </button>
             </div>
-        </form>
-    </div>
-</dialog>
+
+            <p
+                id="coupon-message"
+                class="coupon-message"
+                role="status"
+                aria-live="polite"
+            ></p>
+        </div>
+
+        <!-- Price breakdown -->
+        <div class="price-breakdown" id="price-breakdown" hidden>
+            <div class="price-row">
+                <span>Rental subtotal</span>
+                <strong id="rental-subtotal">₹0</strong>
+            </div>
+
+            <div class="price-row">
+                <span>Coupon discount</span>
+                <strong id="coupon-discount">−₹0</strong>
+            </div>
+
+            <div class="price-row price-total-row">
+                <span>Estimated total</span>
+                <strong id="final-total">₹0</strong>
+            </div>
+        </div>
+
+        <p class="demo-notice">
+            Review your rental details before confirming your reservation.
+            Online payment is not available yet.
+        </p>
+
+        <button
+            type="button"
+            id="confirm-demo"
+            class="primary-button dialog-confirm"
+        >
+            Confirm Booking
+        </button>
+
+     </div>
+    </dialog>
 
 </body>
 </html>

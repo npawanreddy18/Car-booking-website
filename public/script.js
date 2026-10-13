@@ -32,6 +32,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmBookingButton = $("#confirm-demo");
     const dialogClose = $("#dialog-close");
 
+    // Coupon and price breakdown
+    const couponCodeInput = $("#coupon-code");
+    const applyCouponButton = $("#apply-coupon");
+    const couponMessage = $("#coupon-message");
+    const priceBreakdown = $("#price-breakdown");
+    const rentalSubtotalElement = $("#rental-subtotal");
+    const couponDiscountElement = $("#coupon-discount");
+    const finalTotalElement = $("#final-total");
+
     // Dedicated My Bookings page
     const bookingsList = $("#demo-bookings-list");
     const clearBookingsButton = $("#clear-demo-bookings");
@@ -73,6 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let bookingSubmitting = false;
     let searchHasRun = false;
     let currentUser = null;
+
+    let appliedCoupon = null;
+    let couponSubmitting = false;
 
     /* ========================================
        GENERAL HELPERS
@@ -407,6 +419,175 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* ========================================
+       COUPON HANDLING
+       The server validates coupons and calculates
+       the discount. Never trust browser prices.
+       ======================================== */
+
+    function resetCoupon() {
+        appliedCoupon = null;
+
+        if (couponCodeInput) {
+            couponCodeInput.value = "";
+            couponCodeInput.disabled = false;
+        }
+
+        if (applyCouponButton) {
+            applyCouponButton.disabled = false;
+            applyCouponButton.textContent = "Apply";
+        }
+
+        if (couponMessage) {
+            couponMessage.textContent = "";
+            couponMessage.style.color = "";
+        }
+
+        if (priceBreakdown) {
+            priceBreakdown.hidden = true;
+        }
+    }
+
+    function showCouponMessage(message, type = "info") {
+        if (!couponMessage) return;
+
+        const colors = {
+            info: "#62738e",
+            success: "#16803c",
+            error: "#c82029"
+        };
+
+        couponMessage.textContent = message;
+        couponMessage.style.color = colors[type] || colors.info;
+    }
+
+    function renderPriceBreakdown(subtotal, discount, total) {
+        if (
+            !priceBreakdown ||
+            !rentalSubtotalElement ||
+            !couponDiscountElement ||
+            !finalTotalElement
+        ) {
+            return;
+        }
+
+        rentalSubtotalElement.textContent = formatCurrency(subtotal);
+        couponDiscountElement.textContent =
+            `−${formatCurrency(discount)}`;
+        finalTotalElement.textContent = formatCurrency(total);
+
+        priceBreakdown.hidden = false;
+    }
+
+    applyCouponButton?.addEventListener("click", async () => {
+        if (couponSubmitting || bookingSubmitting) return;
+
+        if (!selectedCar) {
+            showCouponMessage(
+                "Select a car before applying a coupon.",
+                "error"
+            );
+            return;
+        }
+
+        const couponCode = couponCodeInput?.value.trim().toUpperCase();
+
+        if (!couponCode) {
+            showCouponMessage("Enter a coupon code first.", "error");
+            couponCodeInput?.focus();
+            return;
+        }
+
+        couponSubmitting = true;
+        applyCouponButton.disabled = true;
+        applyCouponButton.textContent = "Checking...";
+
+        try {
+            const result = await api("/api/coupons/validate", {
+                method: "POST",
+                body: JSON.stringify({
+                    couponCode,
+                    carName: selectedCar.carName,
+                    location: selectedCar.location,
+                    pickup: selectedCar.pickup,
+                    dropoff: selectedCar.dropoff
+                })
+            });
+
+            const coupon = result.coupon;
+
+            if (
+                !coupon ||
+                typeof coupon.discountAmount !== "number" ||
+                typeof coupon.subtotal !== "number" ||
+                typeof coupon.total !== "number" ||
+                !Number.isFinite(coupon.discountAmount) ||
+                !Number.isFinite(coupon.subtotal) ||
+                !Number.isFinite(coupon.total) ||
+                coupon.discountAmount < 0 ||
+                coupon.subtotal < 0 ||
+                coupon.total < 0 ||
+                coupon.discountAmount > coupon.subtotal ||
+                Math.abs(
+                    coupon.total -
+                    (coupon.subtotal - coupon.discountAmount)
+                ) > 0.01
+            ) {
+                throw new Error(
+                    "The server returned an invalid coupon response."
+                );
+            }
+
+            appliedCoupon = {
+                code: coupon.code || couponCode,
+                discountAmount: coupon.discountAmount,
+                subtotal: coupon.subtotal,
+                total: coupon.total
+            };
+
+            renderPriceBreakdown(
+                appliedCoupon.subtotal,
+                appliedCoupon.discountAmount,
+                appliedCoupon.total
+            );
+
+            showCouponMessage(
+                `Coupon ${appliedCoupon.code} applied successfully!`,
+                "success"
+            );
+
+            couponCodeInput.disabled = true;
+            applyCouponButton.textContent = "Applied";
+
+        } catch (error) {
+            appliedCoupon = null;
+
+            if (priceBreakdown) {
+                priceBreakdown.hidden = true;
+            }
+
+            showCouponMessage(
+                error.message || "Unable to apply this coupon.",
+                "error"
+            );
+
+            applyCouponButton.disabled = false;
+            applyCouponButton.textContent = "Apply";
+
+        } finally {
+            couponSubmitting = false;
+        }
+    });
+
+    // Reset the applied coupon if the customer edits the code.
+    couponCodeInput?.addEventListener("input", () => {
+        if (appliedCoupon) {
+            resetCoupon();
+        } else {
+            showCouponMessage("");
+        }
+    });
+
+    /* ========================================
        BOOKING REVIEW DIALOG
        Preserve the original CSS classes
        ======================================== */
@@ -504,8 +685,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // The displayed price is a preview.
-            // The server must calculate the final stored price.
+            // A new vehicle selection always starts with a clean coupon.
+            resetCoupon();
+
+            // This price is only a preview.
+            // The backend calculates the actual booking price.
             selectedCar = {
                 carName,
                 location: locationInput.value,
@@ -547,12 +731,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     bookingDialog?.addEventListener("close", () => {
         selectedCar = null;
+        resetCoupon();
     });
 
     /* ========================================
        MY BOOKINGS — DATABASE
-       Works on my-bookings.html only when
-       the bookings list exists on that page.
        ======================================== */
 
     function renderBookings(bookings) {
@@ -754,6 +937,10 @@ document.addEventListener("DOMContentLoaded", () => {
         confirmBookingButton.disabled = true;
         confirmBookingButton.textContent = "Confirming...";
 
+        if (applyCouponButton) {
+            applyCouponButton.disabled = true;
+        }
+
         try {
             const user = await getLoggedInUser();
 
@@ -788,7 +975,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     carName: selectedCar.carName,
                     location: selectedCar.location,
                     pickup: selectedCar.pickup,
-                    dropoff: selectedCar.dropoff
+                    dropoff: selectedCar.dropoff,
+
+                    // The backend must validate this coupon again.
+                    couponCode: appliedCoupon?.code || null
                 })
             });
 
@@ -802,6 +992,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const total = result.booking.total;
 
             selectedCar = null;
+            appliedCoupon = null;
 
             if (bookingDialog?.open) {
                 bookingDialog.close();
@@ -829,6 +1020,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (confirmBookingButton) {
                 confirmBookingButton.disabled = false;
                 confirmBookingButton.textContent = "Confirm Booking";
+            }
+
+            if (applyCouponButton && !appliedCoupon) {
+                applyCouponButton.disabled = false;
             }
         }
     });
@@ -1207,7 +1402,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (action === "bookings") {
-                // My Bookings is now a separate page.
                 window.location.href = "./my-bookings.html";
                 return;
             }
@@ -1218,7 +1412,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (action === "settings") {
-                window.alert("Account Settings is not available yet.");
+                window.alert("Account Settings are not available yet.");
             }
         });
     });
@@ -1263,7 +1457,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // On index.html, this updates the profile menu.
     loadProfile();
 
-    // On my-bookings.html, this loads the signed-in
+    // On my-bookings.html, load the signed-in
     // customer's bookings from the backend.
     if (bookingsList) {
         loadBookings();
