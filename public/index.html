@@ -548,22 +548,22 @@
 
                 </article>
 
+              <!--car 9 -->
                 <article class="car-card" data-type="luxury">
 
                     <div class="car-image">
-                        <img
-                            src=""
-                            alt="Audi Q3 luxury rental car"
+                        <img src="images/lamborghini urus car.jpg"
+                            alt="lamborgini urus luxury rental car"
                             loading="lazy">
 
                         <span class="car-badge luxury-badge">Luxury</span>
                     </div>
 
                     <div class="car-info">
-                        <h3>Audi Q3</h3>
+                        <h3>Lamborgini Urus</h3>
 
                         <div class="car-specs">
-                            <span>♙ 5 Seats</span>
+                            <span>♙ 4 Seats</span>
                             <span>⛽ Petrol</span>
                             <span>⚙ Automatic</span>
                         </div>
@@ -576,7 +576,7 @@
                             <button
                                 type="button"
                                 class="book-button"
-                                data-car="Audi Q3"
+                                data-car="Lamborgini Urus"
                                 data-price="4500">
                                 Book Now
                             </button>
@@ -600,17 +600,15 @@
             <h2>My Bookings</h2>
 
             <p>
-                View demo bookings saved in this browser.
-                These are not real reservations.
+                 View your reservations, booking references, rental dates,
+                 prices, and booking status.
             </p>
 
             <div id="demo-bookings-list" aria-live="polite">
                 <p>No demo bookings yet.</p>
             </div>
 
-            <button type="button" id="clear-demo-bookings">
-                Clear Demo Bookings
-            </button>
+            
 
         </section>
 
@@ -702,20 +700,69 @@
             <div id="booking-summary"></div>
 
             <p class="demo-notice">
-                Demo only: this does not reserve a real vehicle
-                or process payment.
+                Review your rental details before confirming your reservation.
+               Online payment is not available yet.
             </p>
 
             <button
                 type="button"
                 id="confirm-demo"
                 class="primary-button dialog-confirm">
-                Confirm Demo Booking
-            </button>
-
+                Confirm Booking
+         </button>
         </div>
-
     </dialog>
+
+     
+<!-- EDIT PROFILE DIALOG -->
+<dialog id="profile-edit-dialog" class="profile-edit-dialog"
+        aria-labelledby="profile-edit-title">
+    <div class="profile-edit-content">
+        <button type="button" id="profile-edit-close"
+                class="dialog-close" aria-label="Close profile editor">
+            ×
+        </button>
+
+        <p class="eyebrow">DRIVE EASY ACCOUNT</p>
+        <h2 id="profile-edit-title">My Profile</h2>
+        <p>Update the personal details associated with your account.</p>
+
+        <form id="profile-edit-form">
+            <label for="profile-edit-name">Full name</label>
+            <input
+                id="profile-edit-name"
+                name="name"
+                type="text"
+                minlength="2"
+                maxlength="100"
+                autocomplete="name"
+                required>
+
+            <label for="profile-edit-email">Email address</label>
+            <input
+                id="profile-edit-email"
+                name="email"
+                type="email"
+                maxlength="254"
+                autocomplete="email"
+                required>
+
+            <p id="profile-edit-message" role="status"
+               aria-live="polite"></p>
+
+            <div class="profile-edit-buttons">
+                <button type="button" id="profile-edit-cancel"
+                        class="profile-cancel-button">
+                    Cancel
+                </button>
+                <button type="submit" id="profile-edit-save"
+                        class="profile-save-button">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
 
 </body>
 </html>

@@ -1,10 +1,9 @@
+
 "use strict";
 
 /* ========================================
    DRIVE EASY — WEBSITE FUNCTIONALITY
    ======================================== */
-
-/* 1. GET HTML ELEMENTS */
 
 const bookingForm = document.getElementById("booking-form");
 const locationInput = document.getElementById("location");
@@ -16,7 +15,6 @@ const bookingMessage = document.getElementById("booking-message");
 const carCount = document.getElementById("car-count");
 const carCards = Array.from(document.querySelectorAll(".car-card"));
 const noCarsMessage = document.getElementById("no-cars");
-
 const viewAllButton = document.getElementById("view-all");
 
 const menuToggle = document.getElementById("menu-toggle");
@@ -25,19 +23,19 @@ const navLinks = document.getElementById("nav-links");
 const bookingDialog = document.getElementById("booking-dialog");
 const bookingSummary = document.getElementById("booking-summary");
 const dialogClose = document.getElementById("dialog-close");
-const confirmDemoButton = document.getElementById("confirm-demo");
+const confirmBookingButton = document.getElementById("confirm-demo");
 
-const demoBookingsList = document.getElementById("demo-bookings-list");
-const clearDemoBookingsButton =
-    document.getElementById("clear-demo-bookings");
-
-const STORAGE_KEY = "driveEasyDemoBookings";
+const bookingsList = document.getElementById("demo-bookings-list");
+const clearBookingsButton = document.getElementById("clear-demo-bookings");
 
 let searchHasRun = false;
 let selectedCar = null;
+let bookingSubmitting = false;
+let loggedInUser = null;
 
-
-/* 2. INITIALIZE WEBSITE */
+/* ========================================
+   GENERAL HELPERS
+   ======================================== */
 
 const currentYear = document.getElementById("current-year");
 
@@ -45,17 +43,9 @@ if (currentYear) {
     currentYear.textContent = new Date().getFullYear();
 }
 
-
-/* 3. DATE HELPERS */
-
 function getTodayString() {
     const now = new Date();
-
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
 function updateDateLimits() {
@@ -63,51 +53,18 @@ function updateDateLimits() {
 
     if (pickupInput) {
         pickupInput.min = today;
-
         if (pickupInput.value && pickupInput.value < today) {
             pickupInput.value = "";
         }
     }
 
     if (returnInput) {
-        returnInput.min =
-            pickupInput && pickupInput.value
-                ? pickupInput.value
-                : today;
-
-        if (
-            returnInput.value &&
-            returnInput.value < returnInput.min
-        ) {
+        returnInput.min = pickupInput?.value || today;
+        if (returnInput.value && returnInput.value < returnInput.min) {
             returnInput.value = "";
         }
     }
 }
-
-if (pickupInput) {
-    pickupInput.addEventListener("change", function () {
-        updateDateLimits();
-
-        if (searchHasRun) {
-            clearSearchResults();
-        }
-    });
-}
-
-if (returnInput) {
-    returnInput.addEventListener("change", function () {
-        updateDateLimits();
-
-        if (searchHasRun) {
-            clearSearchResults();
-        }
-    });
-}
-
-updateDateLimits();
-
-
-/* 4. MESSAGE HELPERS */
 
 function showMessage(message, type = "info") {
     if (!bookingMessage) return;
@@ -123,167 +80,8 @@ function showMessage(message, type = "info") {
 }
 
 function clearMessage() {
-    if (bookingMessage) {
-        bookingMessage.textContent = "";
-    }
+    if (bookingMessage) bookingMessage.textContent = "";
 }
-
-
-/* 5. CAR FILTERING */
-
-function getVisibleCars() {
-    return carCards.filter(function (card) {
-        return !card.hidden;
-    });
-}
-
-function updateCarCount(count) {
-    // The count element is optional in the current HTML.
-    if (!carCount) return;
-
-    carCount.textContent =
-        `${count} ${count === 1 ? "car" : "cars"} available`;
-}
-
-function applyCarFilter(type) {
-    let visibleCount = 0;
-
-    carCards.forEach(function (card) {
-        const matchesType =
-            type === "all" || card.dataset.type === type;
-
-        card.hidden = !matchesType;
-
-        if (matchesType) {
-            visibleCount++;
-        }
-    });
-
-    updateCarCount(visibleCount);
-
-    if (noCarsMessage) {
-        noCarsMessage.hidden = visibleCount !== 0;
-    }
-}
-
-function clearSearchResults() {
-    searchHasRun = false;
-
-    carCards.forEach(function (card) {
-        card.hidden = false;
-    });
-
-    updateCarCount(carCards.length);
-
-    if (noCarsMessage) {
-        noCarsMessage.hidden = true;
-    }
-
-    clearMessage();
-}
-
-if (carTypeInput) {
-    carTypeInput.addEventListener("change", function () {
-        if (searchHasRun) {
-            applyCarFilter(carTypeInput.value);
-        }
-    });
-}
-
-
-/* 6. SEARCH CARS */
-
-if (bookingForm) {
-    bookingForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const location = locationInput.value;
-        const pickup = pickupInput.value;
-        const dropoff = returnInput.value;
-        const type = carTypeInput.value;
-
-        if (!location || !pickup || !dropoff) {
-            showMessage(
-                "Please select a location, pickup date and return date.",
-                "error"
-            );
-            return;
-        }
-
-        const today = getTodayString();
-
-        if (pickup < today) {
-            showMessage(
-                "Pickup date cannot be in the past.",
-                "error"
-            );
-            return;
-        }
-
-        if (dropoff <= pickup) {
-            showMessage(
-                "Return date must be after the pickup date.",
-                "error"
-            );
-            return;
-        }
-
-        searchHasRun = true;
-
-        applyCarFilter(type);
-
-        const visibleCount = getVisibleCars().length;
-
-        if (visibleCount === 0) {
-            showMessage(
-                "No sample cars match your selected category.",
-                "info"
-            );
-        } else {
-            showMessage(
-                `${visibleCount} sample ${
-                    visibleCount === 1 ? "car" : "cars"
-                } match your category in ${location}. ` +
-                "Actual vehicle availability has not been checked.",
-                "success"
-            );
-        }
-
-        const carsSection = document.getElementById("cars");
-
-        if (carsSection) {
-            carsSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
-    });
-}
-
-
-/* 7. VIEW ALL CARS */
-
-if (viewAllButton) {
-    viewAllButton.addEventListener("click", function () {
-        if (carTypeInput) {
-            carTypeInput.value = "all";
-        }
-
-        clearSearchResults();
-
-        const carsSection = document.getElementById("cars");
-
-        if (carsSection) {
-            carsSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
-    });
-}
-
-
-/* 8. PRICE AND DATE HELPERS */
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat("en-IN", {
@@ -294,8 +92,7 @@ function formatCurrency(amount) {
 }
 
 function formatDate(dateString) {
-    const date = new Date(dateString + "T00:00:00");
-
+    const date = new Date(`${dateString}T00:00:00`);
     return date.toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "short",
@@ -304,14 +101,147 @@ function formatDate(dateString) {
 }
 
 function calculateRentalDays(pickup, dropoff) {
-    const start = new Date(pickup + "T00:00:00");
-    const end = new Date(dropoff + "T00:00:00");
-
-    return Math.round((end - start) / 86400000);
+    return Math.round(
+        (Date.parse(`${dropoff}T00:00:00`) -
+         Date.parse(`${pickup}T00:00:00`)) / 86400000
+    );
 }
 
+async function readJson(response) {
+    return response.json().catch(() => ({}));
+}
 
-/* 9. BOOKING SUMMARY */
+async function getLoggedInUser() {
+    try {
+        const response = await fetch("/api/auth/me", {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        });
+
+        if (!response.ok) {
+            loggedInUser = null;
+            return null;
+        }
+
+        const result = await readJson(response);
+        loggedInUser = result.user || null;
+        return loggedInUser;
+    } catch (error) {
+        console.error("Could not check login:", error);
+        loggedInUser = null;
+        return null;
+    }
+}
+
+/* ========================================
+   DATE INPUTS
+   ======================================== */
+
+pickupInput?.addEventListener("change", () => {
+    updateDateLimits();
+    if (searchHasRun) clearSearchResults();
+});
+
+returnInput?.addEventListener("change", () => {
+    updateDateLimits();
+    if (searchHasRun) clearSearchResults();
+});
+
+updateDateLimits();
+
+/* ========================================
+   CAR FILTERING AND SEARCH
+   ======================================== */
+
+function getVisibleCars() {
+    return carCards.filter(card => !card.hidden);
+}
+
+function updateCarCount(count) {
+    if (carCount) {
+        carCount.textContent = `${count} ${count === 1 ? "car" : "cars"} available`;
+    }
+}
+
+function applyCarFilter(type) {
+    let visibleCount = 0;
+
+    carCards.forEach(card => {
+        const matches = type === "all" || card.dataset.type === type;
+        card.hidden = !matches;
+        if (matches) visibleCount++;
+    });
+
+    updateCarCount(visibleCount);
+
+    if (noCarsMessage) noCarsMessage.hidden = visibleCount !== 0;
+}
+
+function clearSearchResults() {
+    searchHasRun = false;
+    carCards.forEach(card => { card.hidden = false; });
+    updateCarCount(carCards.length);
+    if (noCarsMessage) noCarsMessage.hidden = true;
+    clearMessage();
+}
+
+carTypeInput?.addEventListener("change", () => {
+    if (searchHasRun) applyCarFilter(carTypeInput.value);
+});
+
+bookingForm?.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const location = locationInput?.value;
+    const pickup = pickupInput?.value;
+    const dropoff = returnInput?.value;
+
+    if (!location || !pickup || !dropoff) {
+        showMessage("Please select a location, pickup date, and return date.", "error");
+        return;
+    }
+
+    if (pickup < getTodayString()) {
+        showMessage("Pickup date cannot be in the past.", "error");
+        return;
+    }
+
+    if (dropoff <= pickup) {
+        showMessage("Return date must be after the pickup date.", "error");
+        return;
+    }
+
+    searchHasRun = true;
+    applyCarFilter(carTypeInput?.value || "all");
+
+    const count = getVisibleCars().length;
+
+    showMessage(
+        count
+            ? `${count} car${count === 1 ? "" : "s"} match your selected category. Availability will be checked when you confirm a reservation.`
+            : "No cars match your selected category.",
+        count ? "success" : "info"
+    );
+
+    document.getElementById("cars")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+});
+
+viewAllButton?.addEventListener("click", () => {
+    if (carTypeInput) carTypeInput.value = "all";
+    clearSearchResults();
+
+    document.getElementById("cars")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+});
+
+/* ========================================
+   BOOKING SUMMARY
+   ======================================== */
 
 function renderBookingSummary(booking) {
     if (!bookingSummary) return;
@@ -319,7 +249,7 @@ function renderBookingSummary(booking) {
     bookingSummary.replaceChildren();
 
     const rows = [
-        ["Vehicle", booking.name],
+        ["Vehicle", booking.carName],
         ["Pickup location", booking.location],
         ["Pickup date", formatDate(booking.pickup)],
         ["Return date", formatDate(booking.dropoff)],
@@ -328,729 +258,656 @@ function renderBookingSummary(booking) {
         ["Estimated total", formatCurrency(booking.total)]
     ];
 
-    rows.forEach(function (row, index) {
-        const element = document.createElement("div");
-
-        element.className =
-            index === rows.length - 1
-                ? "summary-row summary-total"
-                : "summary-row";
+    rows.forEach(([heading, value], index) => {
+        const row = document.createElement("div");
+        row.className = index === rows.length - 1
+            ? "summary-row summary-total"
+            : "summary-row";
 
         const label = document.createElement("span");
-        label.textContent = row[0];
+        label.textContent = heading;
 
-        const value = document.createElement("strong");
-        value.textContent = row[1];
+        const strong = document.createElement("strong");
+        strong.textContent = value;
 
-        element.append(label, value);
-        bookingSummary.appendChild(element);
+        row.append(label, strong);
+        bookingSummary.appendChild(row);
     });
 }
 
+/* ========================================
+   BOOK NOW
+   ======================================== */
 
-/* 10. BOOK NOW BUTTONS */
-
-document.querySelectorAll(".book-button").forEach(function (button) {
-    button.addEventListener("click", function () {
-        if (
-            !locationInput ||
-            !pickupInput ||
-            !returnInput ||
-            !locationInput.value ||
-            !pickupInput.value ||
-            !returnInput.value
-        ) {
-            showMessage(
-                "Choose your location and dates in the booking form first.",
-                "error"
-            );
-
-            const bookingSection = document.getElementById("booking");
-
-            if (bookingSection) {
-                bookingSection.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-            }
-
-            if (locationInput) {
-                locationInput.focus();
-            }
-
+document.querySelectorAll(".book-button").forEach(button => {
+    button.addEventListener("click", async () => {
+        if (!locationInput?.value || !pickupInput?.value || !returnInput?.value) {
+            showMessage("Choose your location and dates in the booking form first.", "error");
+            document.getElementById("booking")?.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+            locationInput?.focus();
             return;
         }
 
         updateDateLimits();
 
-        const today = getTodayString();
-
-        if (
-            pickupInput.value < today ||
-            returnInput.value <= pickupInput.value
-        ) {
-            showMessage(
-                "Please choose valid pickup and return dates.",
-                "error"
-            );
+        if (pickupInput.value < getTodayString() ||
+            returnInput.value <= pickupInput.value) {
+            showMessage("Please choose valid pickup and return dates.", "error");
             return;
         }
 
         const carCard = button.closest(".car-card");
         const carName = button.dataset.car;
-        const dailyPrice = Number(button.dataset.price);
+        const days = calculateRentalDays(pickupInput.value, returnInput.value);
 
-        const days = calculateRentalDays(
-            pickupInput.value,
-            returnInput.value
-        );
+        // This amount is only for the preview. The server calculates the
+        // authoritative price when the booking is submitted.
+        const previewPrice = Number(button.dataset.price);
 
-        if (
-            !carCard ||
-            !carName ||
-            !Number.isFinite(dailyPrice) ||
-            dailyPrice <= 0 ||
-            days <= 0
-        ) {
-            showMessage(
-                "We could not calculate this booking. Please check your dates.",
-                "error"
-            );
+        if (!carCard || !carName || !Number.isFinite(previewPrice) || days <= 0) {
+            showMessage("We could not calculate this booking. Please check your dates.", "error");
             return;
         }
 
         selectedCar = {
-            id: null,
-            name: carName,
-            pricePerDay: dailyPrice,
-            days: days,
-            total: dailyPrice * days,
+            carName,
             location: locationInput.value,
             pickup: pickupInput.value,
             dropoff: returnInput.value,
-            category: carCard.dataset.type,
-            status: "Demo only",
-            createdAt: null
+            days,
+            pricePerDay: previewPrice,
+            total: previewPrice * days
         };
 
         renderBookingSummary(selectedCar);
+        clearMessage();
 
-        showMessage(
-            "Review the estimated booking summary in the dialog.",
-            "info"
-        );
-
-        if (
-            bookingDialog &&
-            typeof bookingDialog.showModal === "function"
-        ) {
+        if (bookingDialog && typeof bookingDialog.showModal === "function") {
             bookingDialog.showModal();
         } else {
-            showMessage(
-                "Your browser does not support the booking dialog.",
-                "error"
-            );
+            showMessage("Your browser does not support the booking dialog.", "error");
         }
     });
 });
 
+/* ========================================
+   REAL DATABASE BOOKINGS
+   ======================================== */
 
-/* 11. DEMO BOOKING STORAGE */
+function renderBookings(bookings) {
+    if (!bookingsList) return;
 
-function getDemoBookings() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+    bookingsList.replaceChildren();
 
-        if (!saved) return [];
-
-        const bookings = JSON.parse(saved);
-
-        return Array.isArray(bookings) ? bookings : [];
-    } catch (error) {
-        console.error("Could not read demo bookings:", error);
-        return [];
-    }
-}
-
-function saveDemoBookings(bookings) {
-    try {
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(bookings)
-        );
-
-        return true;
-    } catch (error) {
-        console.error("Could not save demo bookings:", error);
-
-        showMessage(
-            "Bookings could not be saved in this browser.",
-            "error"
-        );
-
-        return false;
-    }
-}
-
-function renderDemoBookings() {
-    if (!demoBookingsList) return;
-
-    demoBookingsList.replaceChildren();
-
-    const bookings = getDemoBookings();
-
-    if (bookings.length === 0) {
-        const emptyMessage = document.createElement("p");
-        emptyMessage.textContent = "No demo bookings yet.";
-
-        demoBookingsList.appendChild(emptyMessage);
+    if (!bookings.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "You don't have any bookings yet.";
+        bookingsList.appendChild(empty);
         return;
     }
 
-    bookings.forEach(function (booking) {
+    bookings.forEach(booking => {
         const card = document.createElement("article");
         card.className = "demo-booking-card";
 
         const title = document.createElement("h3");
-        title.textContent = booking.name;
+        title.textContent = booking.carName;
 
         const reference = document.createElement("p");
-        reference.textContent = `Demo reference: ${booking.id}`;
+        reference.textContent = `Booking reference: ${booking.reference}`;
 
         const location = document.createElement("p");
         location.textContent = `Pickup location: ${booking.location}`;
 
         const dates = document.createElement("p");
-        dates.textContent =
-            `${formatDate(booking.pickup)} – ${formatDate(booking.dropoff)}`;
+        dates.textContent = `${formatDate(booking.pickup)} – ${formatDate(booking.dropoff)}`;
 
         const duration = document.createElement("p");
         duration.textContent = `Rental duration: ${booking.days} day(s)`;
 
         const total = document.createElement("p");
-        total.textContent = `Estimated total: ${formatCurrency(booking.total)}`;
+        total.textContent = `Total price: ${formatCurrency(booking.total)}`;
 
         const status = document.createElement("p");
-        status.textContent =
-            "Demo only — vehicle not reserved and payment not processed.";
+        status.textContent = `Status: ${booking.status === "cancelled" ? "Cancelled" : "Confirmed"}`;
 
-        card.append(
-            title,
-            reference,
-            location,
-            dates,
-            duration,
-            total,
-            status
-        );
+        card.append(title, reference, location, dates, duration, total, status);
 
-        demoBookingsList.appendChild(card);
+        if (booking.status !== "cancelled") {
+            const cancelButton = document.createElement("button");
+            cancelButton.type = "button";
+            cancelButton.className = "cancel-booking-button";
+            cancelButton.textContent = "Cancel Booking";
+
+            cancelButton.addEventListener("click", async () => {
+                const confirmed = window.confirm(
+                    `Cancel booking ${booking.reference}?`
+                );
+                if (!confirmed) return;
+
+                cancelButton.disabled = true;
+                cancelButton.textContent = "Cancelling...";
+
+                try {
+                    const response = await fetch(
+                        `/api/bookings/${encodeURIComponent(booking.id)}/cancel`,
+                        {
+                            method: "PATCH",
+                            credentials: "same-origin",
+                            headers: { Accept: "application/json" }
+                        }
+                    );
+
+                    const result = await readJson(response);
+                    if (!response.ok) {
+                        throw new Error(result.message || "Unable to cancel booking.");
+                    }
+
+                    showMessage("Booking cancelled successfully.", "success");
+                    await loadBookings();
+                } catch (error) {
+                    showMessage(error.message || "Unable to cancel booking.", "error");
+                    cancelButton.disabled = false;
+                    cancelButton.textContent = "Cancel Booking";
+                }
+            });
+
+            card.appendChild(cancelButton);
+        }
+
+        bookingsList.appendChild(card);
     });
 }
 
+async function loadBookings() {
+    if (!bookingsList) return;
 
-/* 12. CONFIRM DEMO BOOKING */
+    const user = await getLoggedInUser();
 
-if (confirmDemoButton) {
-    confirmDemoButton.addEventListener("click", function () {
-        if (!selectedCar) {
-            showMessage(
-                "Please select a car before confirming.",
-                "error"
-            );
+    if (!user) {
+        bookingsList.replaceChildren();
+        const message = document.createElement("p");
+        message.textContent = "Please log in to view your bookings.";
+        bookingsList.appendChild(message);
 
-            if (bookingDialog && bookingDialog.open) {
-                bookingDialog.close();
-            }
+        if (clearBookingsButton) clearBookingsButton.hidden = true;
+        return;
+    }
 
-            return;
+    if (clearBookingsButton) clearBookingsButton.hidden = true;
+
+    try {
+        const response = await fetch("/api/bookings", {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        });
+
+        const result = await readJson(response);
+
+        if (!response.ok) {
+            throw new Error(result.message || "Unable to load your bookings.");
         }
 
-        const bookings = getDemoBookings();
+        renderBookings(Array.isArray(result.bookings) ? result.bookings : []);
+    } catch (error) {
+        console.error("Load bookings error:", error);
+        bookingsList.replaceChildren();
 
-        const booking = {
-            ...selectedCar,
-            id: "DEMO-" + Date.now().toString(36).toUpperCase(),
-            status: "Demo only",
-            createdAt: new Date().toISOString()
-        };
+        const message = document.createElement("p");
+        message.textContent = error.message || "Unable to load bookings. Please refresh.";
+        bookingsList.appendChild(message);
+    }
+}
 
-        bookings.unshift(booking);
+confirmBookingButton?.addEventListener("click", async () => {
+    if (bookingSubmitting) return;
 
-        if (!saveDemoBookings(bookings)) {
-            return;
+    if (!selectedCar) {
+        showMessage("Please select a car before confirming.", "error");
+        if (bookingDialog?.open) bookingDialog.close();
+        return;
+    }
+
+    const user = await getLoggedInUser();
+
+    if (!user) {
+        showMessage("Please log in before making a booking.", "error");
+        if (bookingDialog?.open) bookingDialog.close();
+        window.location.href = "/login.html";
+        return;
+    }
+
+    bookingSubmitting = true;
+    confirmBookingButton.disabled = true;
+    confirmBookingButton.textContent = "Confirming...";
+
+    try {
+        const response = await fetch("/api/bookings", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json"
+            },
+            body: JSON.stringify({
+                carName: selectedCar.carName,
+                location: selectedCar.location,
+                pickup: selectedCar.pickup,
+                dropoff: selectedCar.dropoff
+            })
+        });
+
+        const result = await readJson(response);
+
+        if (!response.ok) {
+            throw new Error(result.message || "Unable to create booking.");
         }
 
-        renderDemoBookings();
+        selectedCar = null;
 
-        if (bookingDialog && bookingDialog.open) {
-            bookingDialog.close();
-        }
+        if (bookingDialog?.open) bookingDialog.close();
 
         showMessage(
-            `Demo booking saved. Reference: ${booking.id}. ` +
-            "No real vehicle has been reserved.",
+            `Reservation saved successfully. Reference: ${result.booking.reference}`,
             "success"
         );
 
-        selectedCar = null;
+        await loadBookings();
 
-        const bookingsSection = document.getElementById("demo-bookings");
+        document.getElementById("demo-bookings")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    } catch (error) {
+        console.error("Booking submission error:", error);
+        showMessage(error.message || "Unable to create booking. Please try again.", "error");
+    } finally {
+        bookingSubmitting = false;
+        confirmBookingButton.disabled = false;
+        confirmBookingButton.textContent = "Confirm Booking";
+    }
+});
 
-        if (bookingsSection) {
-            bookingsSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
-    });
-}
+// The old clear button must never delete database bookings in bulk.
+clearBookingsButton?.addEventListener("click", () => {
+    showMessage("Bookings cannot be deleted in bulk. Use Cancel Booking for an individual reservation.", "info");
+});
 
+dialogClose?.addEventListener("click", () => {
+    bookingDialog?.close();
+});
 
-/* 13. CLEAR DEMO BOOKINGS */
+bookingDialog?.addEventListener("click", event => {
+    if (event.target === bookingDialog) bookingDialog.close();
+});
 
-if (clearDemoBookingsButton) {
-    clearDemoBookingsButton.addEventListener("click", function () {
-        const bookings = getDemoBookings();
+bookingDialog?.addEventListener("close", () => {
+    selectedCar = null;
+});
 
-        if (bookings.length === 0) {
-            showMessage("There are no demo bookings to clear.", "info");
-            return;
-        }
-
-        const confirmed = window.confirm(
-            "Are you sure you want to delete all demo bookings saved in this browser?"
-        );
-
-        if (!confirmed) return;
-
-        try {
-            localStorage.removeItem(STORAGE_KEY);
-            renderDemoBookings();
-
-            showMessage(
-                "All demo bookings have been cleared from this browser.",
-                "success"
-            );
-        } catch (error) {
-            console.error("Could not clear demo bookings:", error);
-
-            showMessage(
-                "Demo bookings could not be cleared.",
-                "error"
-            );
-        }
-    });
-}
-
-
-/* 14. CLOSE BOOKING DIALOG */
-
-if (dialogClose && bookingDialog) {
-    dialogClose.addEventListener("click", function () {
-        bookingDialog.close();
-    });
-}
-
-if (bookingDialog) {
-    bookingDialog.addEventListener("click", function (event) {
-        if (event.target === bookingDialog) {
-            bookingDialog.close();
-        }
-    });
-
-    bookingDialog.addEventListener("close", function () {
-        selectedCar = null;
-    });
-}
-
-
-/* 15. MOBILE NAVIGATION */
+/* ========================================
+   MOBILE NAVIGATION
+   ======================================== */
 
 if (menuToggle && navLinks) {
-    menuToggle.addEventListener("click", function () {
+    menuToggle.addEventListener("click", () => {
         const isOpen = navLinks.classList.toggle("open");
-
-        menuToggle.setAttribute(
-            "aria-expanded",
-            String(isOpen)
-        );
-
-        menuToggle.setAttribute(
-            "aria-label",
-            isOpen ? "Close navigation" : "Open navigation"
-        );
-
+        menuToggle.setAttribute("aria-expanded", String(isOpen));
+        menuToggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
         menuToggle.textContent = isOpen ? "×" : "☰";
     });
 
-    navLinks.querySelectorAll("a").forEach(function (link) {
-        link.addEventListener("click", function () {
+    navLinks.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => {
             navLinks.classList.remove("open");
-
             menuToggle.setAttribute("aria-expanded", "false");
             menuToggle.setAttribute("aria-label", "Open navigation");
             menuToggle.textContent = "☰";
 
-            navLinks.querySelectorAll("a").forEach(function (item) {
-                item.classList.remove("active");
-            });
-
+            navLinks.querySelectorAll("a").forEach(item => item.classList.remove("active"));
             link.classList.add("active");
         });
     });
 }
 
-
-/* 16. INITIAL STATE */
-
 clearSearchResults();
-renderDemoBookings();
+loadBookings();
 
-
-/* 17. HOME BUTTON — SCROLL TO TOP */
-
-const homeLinks = document.querySelectorAll(
-    'a[href="#home"]'
-);
-
-homeLinks.forEach(function (link) {
-    link.addEventListener("click", function (event) {
+document.querySelectorAll('a[href="#home"]').forEach(link => {
+    link.addEventListener("click", event => {
         event.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
 
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-
-        // Close the mobile menu after clicking Home.
         if (navLinks && menuToggle) {
             navLinks.classList.remove("open");
-
             menuToggle.setAttribute("aria-expanded", "false");
             menuToggle.setAttribute("aria-label", "Open navigation");
             menuToggle.textContent = "☰";
         }
-
-        // Update the active navigation link.
-        if (navLinks) {
-            navLinks.querySelectorAll("a").forEach(function (item) {
-                item.classList.remove("active");
-            });
-
-            if (link.closest("#nav-links")) {
-                link.classList.add("active");
-            }
-        }
     });
 });
 
-
-/* ==========================================
+/* ========================================
    DRIVE EASY — LOGGED-IN PROFILE
-   ========================================== */
+   ======================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  const loggedOutActions = document.getElementById("logged-out-actions");
-  const profileMenu = document.getElementById("profile-menu");
-  const profileTrigger = document.getElementById("profile-trigger");
-  const profileDropdown = document.getElementById("profile-dropdown");
-  const navAvatar = document.getElementById("nav-avatar");
-  const dropdownAvatar = document.getElementById("dropdown-avatar");
-  const navName = document.getElementById("nav-profile-name");
-  const dropdownName = document.getElementById("dropdown-name");
-  const dropdownEmail = document.getElementById("dropdown-email");
-  const photoInput = document.getElementById("profile-photo-input");
-  const changePhotoButton = document.getElementById("change-profile-photo");
-  const feedback = document.getElementById("profile-feedback");
-  const logoutButton = document.getElementById("profile-logout");
+    const loggedOutActions = document.getElementById("logged-out-actions");
+    const profileMenu = document.getElementById("profile-menu");
+    const profileTrigger = document.getElementById("profile-trigger");
+    const profileDropdown = document.getElementById("profile-dropdown");
 
-  // This script is also loaded on pages that may not have the navbar.
-  if (
-    !loggedOutActions ||
-    !profileMenu ||
-    !profileTrigger ||
-    !profileDropdown
-  ) {
-    return;
-  }
+    const navAvatar = document.getElementById("nav-avatar");
+    const dropdownAvatar = document.getElementById("dropdown-avatar");
+    const navName = document.getElementById("nav-profile-name");
+    const dropdownName = document.getElementById("dropdown-name");
+    const dropdownEmail = document.getElementById("dropdown-email");
 
-  let currentUser = null;
+    const photoInput = document.getElementById("profile-photo-input");
+    const changePhotoButton = document.getElementById("change-profile-photo");
+    const feedback = document.getElementById("profile-feedback");
+    const logoutButton = document.getElementById("profile-logout");
 
-  function getInitials(name) {
-    const words = String(name || "Drive Easy")
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
+    const profileEditDialog = document.getElementById("profile-edit-dialog");
+    const profileEditForm = document.getElementById("profile-edit-form");
+    const profileEditName = document.getElementById("profile-edit-name");
+    const profileEditEmail = document.getElementById("profile-edit-email");
+    const profileEditMessage = document.getElementById("profile-edit-message");
+    const profileEditSave = document.getElementById("profile-edit-save");
+    const profileEditClose = document.getElementById("profile-edit-close");
+    const profileEditCancel = document.getElementById("profile-edit-cancel");
 
-    if (words.length === 0) return "DE";
-
-    return words
-      .slice(0, 2)
-      .map((word) => Array.from(word)[0])
-      .join("")
-      .toUpperCase();
-  }
-
-  function renderAvatar(element, name, photoUrl) {
-    if (!element) return;
-
-    // Use initials as the default, without a photo.
-    element.replaceChildren();
-    element.textContent = getInitials(name);
-
-    if (!photoUrl) return;
-
-    const image = document.createElement("img");
-    image.alt = "Profile photo";
-    image.src = photoUrl;
-    image.addEventListener("error", () => {
-      image.remove();
-      element.textContent = getInitials(name);
-    }, { once: true });
-
-    element.textContent = "";
-    element.appendChild(image);
-  }
-
-  function setFeedback(message, isError = false) {
-    if (!feedback) return;
-
-    feedback.textContent = message;
-    feedback.style.color = isError ? "#c81e2b" : "#475569";
-  }
-
-  function closeDropdown() {
-    profileDropdown.hidden = true;
-    profileTrigger.setAttribute("aria-expanded", "false");
-  }
-
-  function openDropdown() {
-    profileDropdown.hidden = false;
-    profileTrigger.setAttribute("aria-expanded", "true");
-  }
-
-  function renderUser(user) {
-    currentUser = user;
-
-    const loggedIn = Boolean(user);
-
-    loggedOutActions.hidden = loggedIn;
-    profileMenu.hidden = !loggedIn;
-
-    if (!loggedIn) {
-      closeDropdown();
-      return;
-    }
-
-    const name = user.name || "Drive Easy Member";
-    const photo = user.profilePhoto || "";
-
-    navName.textContent = name;
-    dropdownName.textContent = name;
-    dropdownEmail.textContent = user.email || "";
-
-    renderAvatar(navAvatar, name, photo);
-    renderAvatar(dropdownAvatar, name, photo);
-  }
-
-  async function loadCurrentUser() {
-    try {
-      const response = await fetch("/api/auth/me", {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json"
-        }
-      });
-
-      if (response.status === 401) {
-        renderUser(null);
+    if (!loggedOutActions || !profileMenu || !profileTrigger || !profileDropdown) {
         return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Could not load your account.");
-      }
-
-      const result = await response.json();
-      renderUser(result.user || null);
-    } catch (error) {
-      console.error("Profile loading error:", error);
-      // Do not break the homepage if the API is temporarily unavailable.
-    }
-  }
-
-  profileTrigger.addEventListener("click", () => {
-    if (profileDropdown.hidden) {
-      openDropdown();
-    } else {
-      closeDropdown();
-    }
-  });
-
-  document.addEventListener("click", (event) => {
-    if (
-      !profileMenu.hidden &&
-      !profileMenu.contains(event.target)
-    ) {
-      closeDropdown();
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      closeDropdown();
-    }
-  });
-
-  // Open the file picker for the user's profile photo.
-  changePhotoButton?.addEventListener("click", () => {
-    photoInput?.click();
-  });
-
-  photoInput?.addEventListener("change", async () => {
-    const file = photoInput.files?.[0];
-
-    if (!file) return;
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp"
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      setFeedback("Choose a JPG, PNG, or WebP image.", true);
-      photoInput.value = "";
-      return;
     }
 
-    if (file.size > 3 * 1024 * 1024) {
-      setFeedback("Your photo must be 3 MB or smaller.", true);
-      photoInput.value = "";
-      return;
+    let currentUser = null;
+
+    function getInitials(name) {
+        const words = String(name || "Drive Easy").trim().split(/\s+/).filter(Boolean);
+        return words.slice(0, 2).map(word => Array.from(word)[0]).join("").toUpperCase() || "DE";
     }
 
-    const formData = new FormData();
-    formData.append("photo", file);
+    function renderAvatar(element, name, photoUrl) {
+        if (!element) return;
 
-    if (changePhotoButton) {
-      changePhotoButton.disabled = true;
+        element.replaceChildren();
+        element.textContent = getInitials(name);
+        if (!photoUrl) return;
+
+        const image = document.createElement("img");
+        image.alt = "Profile photo";
+        image.src = photoUrl;
+        image.addEventListener("error", () => {
+            image.remove();
+            element.textContent = getInitials(name);
+        }, { once: true });
+
+        element.textContent = "";
+        element.appendChild(image);
     }
 
-    setFeedback("Uploading your profile photo...");
-
-    try {
-      const response = await fetch("/api/auth/profile-photo", {
-        method: "POST",
-        credentials: "same-origin",
-        body: formData
-      });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(
-          result.message || "Unable to upload your photo."
-        );
-      }
-
-      // Refresh the profile using the saved server-side data.
-      await loadCurrentUser();
-
-      setFeedback("Your profile photo has been updated.");
-    } catch (error) {
-      console.error("Photo upload error:", error);
-      setFeedback(error.message || "Photo upload failed.", true);
-    } finally {
-      if (changePhotoButton) {
-        changePhotoButton.disabled = false;
-      }
-
-      photoInput.value = "";
+    function setFeedback(message, isError = false) {
+        if (!feedback) return;
+        feedback.textContent = message;
+        feedback.style.color = isError ? "#c81e2b" : "#475569";
     }
-  });
 
-  // Connect menu options to features that currently exist.
-  document.querySelectorAll("[data-profile-action]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const action = button.dataset.profileAction;
-      closeDropdown();
+    function closeDropdown() {
+        profileDropdown.hidden = true;
+        profileTrigger.setAttribute("aria-expanded", "false");
+    }
 
-      if (action === "bookings") {
-        const bookingsSection = document.getElementById("demo-bookings");
+    function openDropdown() {
+        profileDropdown.hidden = false;
+        profileTrigger.setAttribute("aria-expanded", "true");
+    }
 
-        if (bookingsSection) {
-          bookingsSection.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-        } else {
-          window.location.href = "/#demo-bookings";
+    function renderUser(user) {
+        currentUser = user;
+        loggedOutActions.hidden = Boolean(user);
+        profileMenu.hidden = !user;
+
+        if (!user) {
+            closeDropdown();
+            return;
         }
 
-        return;
-      }
+        const name = user.name || "Drive Easy Member";
+        if (navName) navName.textContent = name;
+        if (dropdownName) dropdownName.textContent = name;
+        if (dropdownEmail) dropdownEmail.textContent = user.email || "";
 
-      if (action === "my-profile" && currentUser) {
-        window.alert(
-          "My Profile\n\n" +
-          "Name: " + currentUser.name + "\n" +
-          "Email: " + currentUser.email +
-          "\n\nProfile editing can be added next."
-        );
+        renderAvatar(navAvatar, name, user.profilePhoto || "");
+        renderAvatar(dropdownAvatar, name, user.profilePhoto || "");
+    }
 
-        return;
-      }
+    async function loadCurrentUser() {
+        try {
+            const response = await fetch("/api/auth/me", {
+                credentials: "same-origin",
+                headers: { Accept: "application/json" }
+            });
 
-      if (action === "saved-cars") {
-        window.alert(
-          "Saved Cars is not implemented yet. " +
-          "We can build the favorites feature next."
-        );
+            if (response.status === 401) {
+                renderUser(null);
+                return null;
+            }
 
-        return;
-      }
+            const result = await readJson(response);
+            if (!response.ok) throw new Error(result.message || "Could not load your account.");
 
-      if (action === "settings") {
-        window.alert(
-          "Account Settings is not implemented yet. " +
-          "We can add secure profile editing and password changes next."
-        );
-      }
+            renderUser(result.user || null);
+            return result.user || null;
+        } catch (error) {
+            console.error("Profile loading error:", error);
+            setFeedback("Unable to load your profile. Please refresh the page.", true);
+            return null;
+        }
+    }
+
+    profileTrigger.addEventListener("click", () => {
+        profileDropdown.hidden ? openDropdown() : closeDropdown();
     });
-  });
 
-  logoutButton?.addEventListener("click", async () => {
-    logoutButton.disabled = true;
-    logoutButton.textContent = "Logging out...";
+    document.addEventListener("click", event => {
+        if (!profileMenu.hidden && !profileMenu.contains(event.target)) closeDropdown();
+    });
 
-    try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json"
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeDropdown();
+    });
+
+    changePhotoButton?.addEventListener("click", () => photoInput?.click());
+
+    photoInput?.addEventListener("change", async () => {
+        const file = photoInput.files?.[0];
+        if (!file) return;
+
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            setFeedback("Choose a JPG, PNG, or WebP image.", true);
+            photoInput.value = "";
+            return;
         }
-      });
 
-      const result = await response.json().catch(() => ({}));
+        if (file.size > 3 * 1024 * 1024) {
+            setFeedback("Your photo must be 3 MB or smaller.", true);
+            photoInput.value = "";
+            return;
+        }
 
-      if (!response.ok) {
-        throw new Error(result.message || "Logout failed.");
-      }
+        const formData = new FormData();
+        formData.append("photo", file);
+        if (changePhotoButton) changePhotoButton.disabled = true;
+        setFeedback("Uploading your profile photo...");
 
-      renderUser(null);
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Logout error:", error);
-      setFeedback(error.message || "Unable to log out.", true);
+        try {
+            const response = await fetch("/api/auth/profile-photo", {
+                method: "POST",
+                credentials: "same-origin",
+                body: formData
+            });
 
-      logoutButton.disabled = false;
-      logoutButton.textContent = "↪ Log Out";
+            const result = await readJson(response);
+            if (!response.ok) throw new Error(result.message || "Unable to upload your photo.");
+
+            await loadCurrentUser();
+            setFeedback("Your profile photo has been updated.");
+        } catch (error) {
+            console.error("Photo upload error:", error);
+            setFeedback(error.message || "Photo upload failed.", true);
+        } finally {
+            if (changePhotoButton) changePhotoButton.disabled = false;
+            photoInput.value = "";
+        }
+    });
+
+    function closeProfileEditor() {
+        if (profileEditDialog?.open) profileEditDialog.close();
     }
-  });
 
-  loadCurrentUser();
+    profileEditClose?.addEventListener("click", closeProfileEditor);
+    profileEditCancel?.addEventListener("click", closeProfileEditor);
+
+    profileEditDialog?.addEventListener("click", event => {
+        if (event.target === profileEditDialog) closeProfileEditor();
+    });
+
+    document.querySelectorAll("[data-profile-action]").forEach(button => {
+        button.addEventListener("click", () => {
+            const action = button.dataset.profileAction;
+            closeDropdown();
+
+            if (action === "my-profile") {
+                if (!currentUser) {
+                    setFeedback("Please log in to edit your profile.", true);
+                    return;
+                }
+
+                if (!profileEditDialog || !profileEditName || !profileEditEmail || !profileEditForm) {
+                    setFeedback("The profile editor HTML is missing. Check index.html.", true);
+                    return;
+                }
+
+                profileEditName.value = currentUser.name || "";
+                profileEditEmail.value = currentUser.email || "";
+                if (profileEditMessage) profileEditMessage.textContent = "";
+
+                if (typeof profileEditDialog.showModal === "function") {
+                    profileEditDialog.showModal();
+                    profileEditName.focus();
+                } else {
+                    setFeedback("Your browser does not support the profile editor.", true);
+                }
+                return;
+            }
+
+            if (action === "bookings") {
+                document.getElementById("demo-bookings")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+                loadBookings();
+                return;
+            }
+
+            if (action === "saved-cars") {
+                window.alert("Saved Cars is not implemented yet.");
+            }
+
+            if (action === "settings") {
+                window.alert("Account Settings is not implemented yet.");
+            }
+        });
+    });
+
+    profileEditForm?.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        if (!currentUser || !profileEditName || !profileEditEmail) {
+            if (profileEditMessage) profileEditMessage.textContent = "Please log in again.";
+            return;
+        }
+
+        const name = profileEditName.value.trim();
+        const email = profileEditEmail.value.trim();
+
+        if (name.length < 2 || name.length > 100) {
+            if (profileEditMessage) {
+                profileEditMessage.textContent = "Your name must be between 2 and 100 characters.";
+            }
+            return;
+        }
+
+        if (!profileEditForm.reportValidity()) return;
+
+        if (profileEditSave) {
+            profileEditSave.disabled = true;
+            profileEditSave.textContent = "Saving...";
+        }
+
+        if (profileEditMessage) profileEditMessage.textContent = "Saving your changes...";
+
+        try {
+            const response = await fetch("/api/auth/profile", {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify({ name, email })
+            });
+
+            const result = await readJson(response);
+            if (!response.ok) throw new Error(result.message || "Unable to update your profile.");
+            if (!result.user) throw new Error("The server did not return the updated profile.");
+
+            renderUser(result.user);
+            if (profileEditMessage) profileEditMessage.textContent = "Profile saved successfully.";
+
+            closeProfileEditor();
+            openDropdown();
+            setFeedback("Your profile details have been updated.");
+        } catch (error) {
+            console.error("Profile update error:", error);
+            if (profileEditMessage) {
+                profileEditMessage.textContent = error.message || "Unable to save your profile.";
+            }
+        } finally {
+            if (profileEditSave) {
+                profileEditSave.disabled = false;
+                profileEditSave.textContent = "Save Changes";
+            }
+        }
+    });
+
+    logoutButton?.addEventListener("click", async () => {
+        logoutButton.disabled = true;
+        logoutButton.textContent = "Logging out...";
+
+        try {
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { Accept: "application/json" }
+            });
+
+            const result = await readJson(response);
+            if (!response.ok) throw new Error(result.message || "Logout failed.");
+
+            renderUser(null);
+            window.location.href = "/";
+        } catch (error) {
+            console.error("Logout error:", error);
+            setFeedback(error.message || "Unable to log out.", true);
+            logoutButton.disabled = false;
+            logoutButton.textContent = "↪ Log Out";
+        }
+    });
+
+    loadCurrentUser();
 });
