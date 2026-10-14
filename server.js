@@ -79,6 +79,72 @@ const LOCATIONS = [
     "Bengaluru", "Hyderabad", "Chennai",
     "Mumbai", "Kolkata", "Jaipur"
 ];
+    
+     // ========================================
+// DRIVE EASY — COUPON DISCOUNTS
+// ========================================
+
+const COUPONS = {
+    SAVE10: {
+        type: "percentage",
+        value: 10,
+        label: "10% off"
+    },
+
+    FLAT500: {
+        type: "fixed",
+        value: 500,
+        label: "₹500 off"
+    }
+};
+
+function calculateCouponDiscount(coupon, subtotal) {
+    if (!coupon || subtotal <= 0) {
+        return 0;
+    }
+
+    const discount = coupon.type === "percentage"
+        ? subtotal * coupon.value / 100
+        : coupon.value;
+
+    return Math.min(subtotal, Math.round(discount));
+}
+
+function getCouponQuote(code, subtotal) {
+    const normalizedCode = typeof code === "string"
+        ? code.trim().toUpperCase()
+        : "";
+
+    if (!normalizedCode) {
+        return {
+            code: "",
+            discountAmount: 0,
+            subtotal,
+            total: subtotal
+        };
+    }
+
+    const coupon = COUPONS[normalizedCode];
+
+    if (!coupon) {
+        return null;
+    }
+
+    const discountAmount = calculateCouponDiscount(
+        coupon,
+        subtotal
+    );
+
+    return {
+        code: normalizedCode,
+        type: coupon.type,
+        value: coupon.value,
+        label: coupon.label,
+        discountAmount,
+        subtotal,
+        total: subtotal - discountAmount
+    };
+}
 
 // ========================================
 // BOOKING MODEL
@@ -453,44 +519,123 @@ app.post("/api/auth/profile-photo", requireLogin, handlePhotoUpload, async (req,
 });
 
 // ========================================
+// DRIVE EASY — VALIDATE COUPON
+// ========================================
+
+app.post("/api/coupons/validate", requireLogin, bookingLimiter, async (req, res) => {
+    try {
+        const { couponCode, carName, location, pickup, dropoff } = req.body || {};
+
+        const vehicle = VEHICLES[carName];
+
+        if (!vehicle) {
+            return res.status(400).json({
+                message: "Please select a valid car."
+            });
+        }
+
+        if (!LOCATIONS.includes(location)) {
+            return res.status(400).json({
+                message: "Please select a valid pickup location."
+            });
+        }
+
+        if (
+            !isValidDateString(pickup) ||
+            !isValidDateString(dropoff) ||
+            pickup < getTodayString()
+        ) {
+            return res.status(400).json({
+                message: "Please select valid rental dates."
+            });
+        }
+
+        const days = daysBetween(pickup, dropoff);
+
+        if (!Number.isInteger(days) || days < 1 || days > 30) {
+            return res.status(400).json({
+                message: "Return date must be after pickup. Maximum 30 days."
+            });
+        }
+
+        const subtotal = vehicle.pricePerDay * days;
+        const coupon = getCouponQuote(couponCode, subtotal);
+
+        if (!coupon) {
+            return res.status(400).json({
+                message: "Invalid coupon code."
+            });
+        }
+
+        return res.json({
+            message: "Coupon applied successfully.",
+            coupon
+        });
+
+    } catch (error) {
+        console.error("Coupon validation error:", error.message);
+
+        return res.status(500).json({
+            message: "Unable to validate coupon."
+        });
+    }
+});
+
+// ========================================
 // CREATE BOOKING
 // ========================================
 
+
 app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
     try {
-        const { carName, location, pickup, dropoff } = req.body || {};
+        const {
+            carName,
+            location,
+            pickup,
+            dropoff,
+            couponCode
+        } = req.body || {};
 
-        if (typeof carName !== "string" ||
+        if (
+            typeof carName !== "string" ||
             typeof location !== "string" ||
             !isValidDateString(pickup) ||
-            !isValidDateString(dropoff)) {
+            !isValidDateString(dropoff)
+        ) {
             return res.status(400).json({
                 message: "Choose a valid car, pickup location, and rental dates."
             });
         }
 
         const vehicle = VEHICLES[carName];
+
         if (!vehicle) {
-            return res.status(400).json({ message: "This vehicle is not available for booking." });
+            return res.status(400).json({
+                message: "This vehicle is not available for booking."
+            });
         }
 
         if (!LOCATIONS.includes(location)) {
-            return res.status(400).json({ message: "Choose a supported pickup location." });
+            return res.status(400).json({
+                message: "Choose a supported pickup location."
+            });
         }
 
         if (pickup < getTodayString()) {
-            return res.status(400).json({ message: "Pickup date cannot be in the past." });
+            return res.status(400).json({
+                message: "Pickup date cannot be in the past."
+            });
         }
 
         const days = daysBetween(pickup, dropoff);
+
         if (!Number.isInteger(days) || days < 1 || days > 30) {
             return res.status(400).json({
                 message: "Return date must be after pickup. Bookings can be up to 30 days."
             });
         }
 
-        // A booking overlaps when its pickup is before the requested
-        // drop-off and its drop-off is after the requested pickup.
+        // Check whether this car is already booked for these dates.
         const conflict = await Booking.findOne({
             carName,
             location,
@@ -505,6 +650,22 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
             });
         }
 
+        // Calculate the rental price on the server.
+        const subtotal = vehicle.pricePerDay * days;
+
+        // Validate the coupon on the server.
+        const coupon = getCouponQuote(
+            couponCode,
+            subtotal
+        );
+
+        if (!coupon) {
+            return res.status(400).json({
+                message: "Invalid coupon code. Please check your code."
+            });
+        }
+
+        // Save the discounted booking to MongoDB.
         const booking = await Booking.create({
             reference: `DE-${crypto.randomBytes(5).toString("hex").toUpperCase()}`,
             user: req.session.userId,
@@ -514,7 +675,10 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
             dropoff,
             days,
             pricePerDay: vehicle.pricePerDay,
-            total: vehicle.pricePerDay * days,
+            subtotal: coupon.subtotal,
+            couponCode: coupon.code || "",
+            couponDiscount: coupon.discountAmount,
+            total: coupon.total,
             status: "confirmed"
         });
 
@@ -529,16 +693,24 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
                 dropoff: booking.dropoff,
                 days: booking.days,
                 pricePerDay: booking.pricePerDay,
+                subtotal: booking.subtotal,
+                couponCode: booking.couponCode,
+                couponDiscount: booking.couponDiscount,
                 total: booking.total,
                 status: booking.status,
                 createdAt: booking.createdAt
             }
         });
+
     } catch (error) {
         console.error("Create booking error:", error.message);
-        return res.status(500).json({ message: "Unable to create your booking. Please try again." });
+
+        return res.status(500).json({
+            message: "Unable to create your booking. Please try again."
+        });
     }
 });
+ 
 
 // ========================================
 // GET BOOKINGS FOR THE LOGGED-IN CUSTOMER

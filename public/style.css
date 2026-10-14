@@ -1825,3 +1825,289 @@ img {
         padding: 6px 9px;
     }
 }
+
+/* ==========================================
+   DRIVE EASY — PREMIUM BOOKING POPUP DESIGN
+   ========================================== */
+
+/* Booking popup */
+#booking-dialog {
+    width: min(92%, 620px);
+    max-width: 620px;
+    max-height: 92vh;
+    padding: 28px 30px;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    background: #ffffff;
+    color: #17345c;
+    box-shadow: 0 24px 70px rgba(16, 40, 76, 0.22);
+    overflow-y: auto;
+}
+
+#booking-dialog::backdrop {
+    background: rgba(12, 28, 50, 0.65);
+    backdrop-filter: blur(4px);
+}
+
+/* Booking summary */
+#booking-summary {
+    color: #17345c;
+    line-height: 1.65;
+}
+
+#booking-summary strong {
+    color: #17345c;
+    font-weight: 700;
+}
+
+/* Coupon card */
+#booking-dialog .coupon-section {
+    margin: 20px 0 16px;
+    padding: 18px;
+    border: 1px solid #dbe6f4;
+    border-radius: 15px;
+    background: #f7faff;
+}
+
+#booking-dialog .coupon-section label {
+    display: block;
+    margin-bottom: 10px;
+    color: #17345c;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+#booking-dialog .coupon-input-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+}
+
+#booking-dialog #coupon-code {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 0 13px;
+    border: 1px solid #cbd8e8;
+    border-radius: 10px;
+    outline: none;
+    background: #ffffff;
+    color: #17345c;
+    font-size: 15px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#booking-dialog #coupon-code:focus {
+    border-color: #3978d4;
+    box-shadow: 0 0 0 3px rgba(57, 120, 212, 0.13);
+}
+
+#booking-dialog #coupon-code::placeholder {
+    color: #8a9bb1;
+}
+
+#booking-dialog #apply-coupon {
+    min-width: 92px;
+    min-height: 46px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 10px;
+    background: #245ca8;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+#booking-dialog #apply-coupon:hover:not(:disabled) {
+    background: #173f7b;
+    transform: translateY(-1px);
+}
+
+#booking-dialog #apply-coupon:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Coupon success and error messages */
+#booking-dialog .coupon-message {
+    margin: 10px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#booking-dialog .coupon-message:empty {
+    display: none;
+}
+
+/* Price breakdown card */
+#booking-dialog #price-breakdown {
+    margin: 18px 0;
+    padding: 8px 0;
+    border-top: 1px solid #e0e7f0;
+    border-bottom: 1px solid #e0e7f0;
+}
+
+#booking-dialog #price-breakdown[hidden] {
+    display: none !important;
+}
+
+#booking-dialog #price-breakdown .price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 0;
+    color: #62748b;
+    font-size: 14px;
+}
+
+#booking-dialog #price-breakdown .price-row strong {
+    color: #17345c;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: right;
+}
+
+/* Coupon savings */
+#booking-dialog #price-breakdown #coupon-discount {
+    color: #16845b;
+}
+
+/* Final total — premium navy instead of error red */
+#booking-dialog #price-breakdown .price-total-row {
+    margin-top: 5px;
+    padding: 16px 0 12px;
+    border-top: 1px dashed #cbd8e8;
+    color: #17345c;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+#booking-dialog #price-breakdown .price-total-row span {
+    color: #17345c;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+#booking-dialog #price-breakdown .price-total-row strong,
+#booking-dialog #price-breakdown #final-total {
+    color: #17345c !important;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+}
+
+/* Main estimated total in the original booking summary */
+#booking-dialog #booking-summary {
+    --booking-total-color: #17345c;
+}
+
+#booking-dialog #booking-summary .estimated-total,
+#booking-dialog #booking-summary .total-price {
+    color: #17345c;
+}
+
+/* Booking notice */
+#booking-dialog .demo-notice {
+    margin: 20px 0;
+    padding: 15px 16px;
+    border: 1px solid #f2e2bd;
+    border-radius: 12px;
+    background: #fff9ec;
+    color: #80602b;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* Confirm booking button */
+#booking-dialog #confirm-demo {
+    display: block;
+    width: 100%;
+    min-height: 54px;
+    margin-top: 20px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    background: #f52932;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 5px 12px rgba(245, 41, 50, 0.15);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+#booking-dialog #confirm-demo:hover {
+    background: #d91e28;
+    box-shadow: 0 8px 18px rgba(245, 41, 50, 0.22);
+    transform: translateY(-1px);
+}
+
+#booking-dialog #confirm-demo:active {
+    transform: translateY(0);
+}
+
+/* Scrollbar */
+#booking-dialog {
+    scrollbar-width: thin;
+    scrollbar-color: #b7c5d8 #f3f6fa;
+}
+
+#booking-dialog::-webkit-scrollbar {
+    width: 8px;
+}
+
+#booking-dialog::-webkit-scrollbar-track {
+    background: #f3f6fa;
+    border-radius: 10px;
+}
+
+#booking-dialog::-webkit-scrollbar-thumb {
+    background: #b7c5d8;
+    border-radius: 10px;
+}
+
+#booking-dialog::-webkit-scrollbar-thumb:hover {
+    background: #879bb5;
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+    #booking-dialog {
+        width: 94%;
+        max-width: none;
+        max-height: 90vh;
+        padding: 20px 17px;
+        border-radius: 18px;
+    }
+
+    #booking-dialog .coupon-section {
+        padding: 14px;
+    }
+
+    #booking-dialog .coupon-input-row {
+        gap: 8px;
+    }
+
+    #booking-dialog #apply-coupon {
+        min-width: 78px;
+        padding: 0 10px;
+    }
+
+    #booking-dialog #price-breakdown .price-row {
+        font-size: 13px;
+    }
+
+    #booking-dialog #price-breakdown .price-total-row strong,
+    #booking-dialog #price-breakdown #final-total {
+        font-size: 20px;
+    }
+
+    #booking-dialog #confirm-demo {
+        min-height: 50px;
+        font-size: 15px;
+    }
+}
