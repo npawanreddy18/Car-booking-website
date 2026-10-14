@@ -424,12 +424,76 @@ document.addEventListener("DOMContentLoaded", () => {
        the discount. Never trust browser prices.
        ======================================== */
 
-    function resetCoupon() {
+function resetCoupon() {
+    appliedCoupon = null;
+
+    if (couponCodeInput) {
+        couponCodeInput.value = "";
+        couponCodeInput.disabled = false;
+    }
+
+    if (applyCouponButton) {
+        applyCouponButton.disabled = false;
+        applyCouponButton.textContent = "Apply";
+    }
+
+    if (couponMessage) {
+        couponMessage.textContent = "";
+        couponMessage.style.color = "";
+    }
+
+    if (priceBreakdown) {
+        priceBreakdown.hidden = true;
+    }
+}
+
+function showCouponMessage(message, type = "info") {
+    if (!couponMessage) return;
+
+    const colors = {
+        info: "#62738e",
+        success: "#16803c",
+        error: "#c82029"
+    };
+
+    couponMessage.textContent = message;
+    couponMessage.style.color = colors[type] || colors.info;
+}
+
+function renderPriceBreakdown(subtotal, discount, total) {
+    if (
+        !priceBreakdown ||
+        !rentalSubtotalElement ||
+        !couponDiscountElement ||
+        !finalTotalElement
+    ) {
+        return;
+    }
+
+    rentalSubtotalElement.textContent = formatCurrency(subtotal);
+    couponDiscountElement.textContent = `−${formatCurrency(discount)}`;
+    finalTotalElement.textContent = formatCurrency(total);
+
+    priceBreakdown.hidden = false;
+}
+
+// Apply, replace, or remove a coupon.
+applyCouponButton?.addEventListener("click", async () => {
+    if (couponSubmitting || bookingSubmitting) return;
+
+    if (!selectedCar) {
+        showCouponMessage("Select a car before applying a coupon.", "error");
+        return;
+    }
+
+    const couponCode = couponCodeInput?.value.trim().toUpperCase() || "";
+
+    // Empty input removes the current coupon.
+    if (!couponCode) {
         appliedCoupon = null;
 
-        if (couponCodeInput) {
-            couponCodeInput.value = "";
-            couponCodeInput.disabled = false;
+        if (priceBreakdown) {
+            priceBreakdown.hidden = true;
         }
 
         if (applyCouponButton) {
@@ -437,146 +501,116 @@ document.addEventListener("DOMContentLoaded", () => {
             applyCouponButton.textContent = "Apply";
         }
 
-        if (couponMessage) {
-            couponMessage.textContent = "";
-            couponMessage.style.color = "";
+        showCouponMessage("Coupon removed. No discount applied.", "info");
+        return;
+    }
+
+    couponSubmitting = true;
+    applyCouponButton.disabled = true;
+    applyCouponButton.textContent = "Checking...";
+
+    try {
+        const result = await api("/api/coupons/validate", {
+            method: "POST",
+            body: JSON.stringify({
+                couponCode,
+                carName: selectedCar.carName,
+                location: selectedCar.location,
+                pickup: selectedCar.pickup,
+                dropoff: selectedCar.dropoff
+            })
+        });
+
+        const coupon = result.coupon;
+
+        if (
+            !coupon ||
+            typeof coupon.discountAmount !== "number" ||
+            typeof coupon.subtotal !== "number" ||
+            typeof coupon.total !== "number" ||
+            !Number.isFinite(coupon.discountAmount) ||
+            !Number.isFinite(coupon.subtotal) ||
+            !Number.isFinite(coupon.total) ||
+            coupon.discountAmount < 0 ||
+            coupon.subtotal < 0 ||
+            coupon.total < 0 ||
+            coupon.discountAmount > coupon.subtotal ||
+            Math.abs(
+                coupon.total - (coupon.subtotal - coupon.discountAmount)
+            ) > 0.01
+        ) {
+            throw new Error("The server returned an invalid coupon response.");
         }
+
+        appliedCoupon = {
+            code: coupon.code || couponCode,
+            discountAmount: coupon.discountAmount,
+            subtotal: coupon.subtotal,
+            total: coupon.total
+        };
+
+        renderPriceBreakdown(
+            appliedCoupon.subtotal,
+            appliedCoupon.discountAmount,
+            appliedCoupon.total
+        );
+
+        showCouponMessage(
+            `Coupon ${appliedCoupon.code} applied successfully! You can change it anytime.`,
+            "success"
+        );
+
+        // Keep the input enabled so customers can change the code.
+        couponCodeInput.disabled = false;
+        applyCouponButton.disabled = false;
+        applyCouponButton.textContent = "Apply";
+
+    } catch (error) {
+        // If a replacement coupon is invalid, don't keep the old discount.
+        appliedCoupon = null;
 
         if (priceBreakdown) {
             priceBreakdown.hidden = true;
         }
+
+        showCouponMessage(
+            error.message || "Unable to apply this coupon.",
+            "error"
+        );
+
+        if (couponCodeInput) {
+            couponCodeInput.disabled = false;
+        }
+
+        applyCouponButton.disabled = false;
+        applyCouponButton.textContent = "Apply";
+
+    } finally {
+        couponSubmitting = false;
+    }
+});
+
+// Remove the applied discount as soon as the customer edits the code.
+// They must click Apply to validate the replacement coupon.
+couponCodeInput?.addEventListener("input", () => {
+    if (!appliedCoupon) return;
+
+    appliedCoupon = null;
+
+    if (priceBreakdown) {
+        priceBreakdown.hidden = true;
     }
 
-    function showCouponMessage(message, type = "info") {
-        if (!couponMessage) return;
-
-        const colors = {
-            info: "#62738e",
-            success: "#16803c",
-            error: "#c82029"
-        };
-
-        couponMessage.textContent = message;
-        couponMessage.style.color = colors[type] || colors.info;
+    if (applyCouponButton) {
+        applyCouponButton.textContent = "Apply";
     }
 
-    function renderPriceBreakdown(subtotal, discount, total) {
-        if (
-            !priceBreakdown ||
-            !rentalSubtotalElement ||
-            !couponDiscountElement ||
-            !finalTotalElement
-        ) {
-            return;
-        }
+    showCouponMessage(
+        "Coupon changed. Click Apply to check the new code.",
+        "info"
+    );
+});
 
-        rentalSubtotalElement.textContent = formatCurrency(subtotal);
-        couponDiscountElement.textContent =
-            `−${formatCurrency(discount)}`;
-        finalTotalElement.textContent = formatCurrency(total);
-
-        priceBreakdown.hidden = false;
-    }
-
-    applyCouponButton?.addEventListener("click", async () => {
-        if (couponSubmitting || bookingSubmitting) return;
-
-        if (!selectedCar) {
-            showCouponMessage(
-                "Select a car before applying a coupon.",
-                "error"
-            );
-            return;
-        }
-
-        const couponCode = couponCodeInput?.value.trim().toUpperCase();
-
-        if (!couponCode) {
-            showCouponMessage("Enter a coupon code first.", "error");
-            couponCodeInput?.focus();
-            return;
-        }
-
-        couponSubmitting = true;
-        applyCouponButton.disabled = true;
-        applyCouponButton.textContent = "Checking...";
-
-        try {
-            const result = await api("/api/coupons/validate", {
-                method: "POST",
-                body: JSON.stringify({
-                    couponCode,
-                    carName: selectedCar.carName,
-                    location: selectedCar.location,
-                    pickup: selectedCar.pickup,
-                    dropoff: selectedCar.dropoff
-                })
-            });
-
-            const coupon = result.coupon;
-
-            if (
-                !coupon ||
-                typeof coupon.discountAmount !== "number" ||
-                typeof coupon.subtotal !== "number" ||
-                typeof coupon.total !== "number" ||
-                !Number.isFinite(coupon.discountAmount) ||
-                !Number.isFinite(coupon.subtotal) ||
-                !Number.isFinite(coupon.total) ||
-                coupon.discountAmount < 0 ||
-                coupon.subtotal < 0 ||
-                coupon.total < 0 ||
-                coupon.discountAmount > coupon.subtotal ||
-                Math.abs(
-                    coupon.total -
-                    (coupon.subtotal - coupon.discountAmount)
-                ) > 0.01
-            ) {
-                throw new Error(
-                    "The server returned an invalid coupon response."
-                );
-            }
-
-            appliedCoupon = {
-                code: coupon.code || couponCode,
-                discountAmount: coupon.discountAmount,
-                subtotal: coupon.subtotal,
-                total: coupon.total
-            };
-
-            renderPriceBreakdown(
-                appliedCoupon.subtotal,
-                appliedCoupon.discountAmount,
-                appliedCoupon.total
-            );
-
-            showCouponMessage(
-                `Coupon ${appliedCoupon.code} applied successfully!`,
-                "success"
-            );
-
-            couponCodeInput.disabled = true;
-            applyCouponButton.textContent = "Applied";
-
-        } catch (error) {
-            appliedCoupon = null;
-
-            if (priceBreakdown) {
-                priceBreakdown.hidden = true;
-            }
-
-            showCouponMessage(
-                error.message || "Unable to apply this coupon.",
-                "error"
-            );
-
-            applyCouponButton.disabled = false;
-            applyCouponButton.textContent = "Apply";
-
-        } finally {
-            couponSubmitting = false;
-        }
-    });
 
     // Reset the applied coupon if the customer edits the code.
     couponCodeInput?.addEventListener("input", () => {
