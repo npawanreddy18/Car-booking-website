@@ -764,6 +764,47 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
 });
 
 
+ // ========================================
+ // GET THE LOGGED-IN CUSTOMER'S BOOKINGS
+ // ========================================
+
+app.get("/api/bookings", requireLogin, async (req, res) => {
+    try {
+        const bookings = await Booking.find({
+            user: req.session.userId
+        })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return res.json({
+            bookings: bookings.map(booking => ({
+                id: booking._id,
+                reference: booking.reference,
+                carName: booking.carName,
+                location: booking.location,
+                pickup: booking.pickup,
+                dropoff: booking.dropoff,
+                days: booking.days,
+                pricePerDay: booking.pricePerDay,
+                subtotal: booking.subtotal,
+                couponCode: booking.couponCode || "",
+                couponDiscount: booking.couponDiscount || 0,
+                welcomeRideDiscount: booking.welcomeRideDiscount || 0,
+                total: booking.total,
+                status: booking.status,
+                createdAt: booking.createdAt
+            }))
+        });
+    } catch (error) {
+        console.error("Get bookings error:", error.message);
+
+        return res.status(500).json({
+            message: "Unable to load your bookings."
+        });
+    }
+});
+
+
 // ========================================
 // CANCEL A CUSTOMER'S OWN BOOKING
 // ========================================
