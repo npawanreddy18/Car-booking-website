@@ -149,9 +149,14 @@ function getCouponQuote(code, subtotal) {
 // ========================================
 // BOOKING MODEL
 // ========================================
-
-const Booking = mongoose.model("Booking", new mongoose.Schema({
-    reference: { type: String, required: true, unique: true, index: true },
+ 
+  const Booking = mongoose.model("Booking", new mongoose.Schema({
+    reference: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -164,14 +169,25 @@ const Booking = mongoose.model("Booking", new mongoose.Schema({
     dropoff: { type: String, required: true },
     days: { type: Number, required: true },
     pricePerDay: { type: Number, required: true },
+
+    // Rental and coupon amounts
+    subtotal: { type: Number, required: true },
+    couponCode: { type: String, default: "" },
+    couponDiscount: { type: Number, default: 0 },
+
+    // Free 5 km Ride welcome benefit
+    welcomeRideDiscount: { type: Number, default: 0 },
+
     total: { type: Number, required: true },
+
     status: {
         type: String,
         enum: ["confirmed", "cancelled"],
         default: "confirmed",
         index: true
     }
-}, { timestamps: true }));
+  }, { timestamps: true }));
+
 
 // ========================================
 // PROFILE PHOTO UPLOAD
@@ -281,6 +297,27 @@ app.get("/api/health", (req, res) => {
         database: mongoose.connection.readyState === 1
             ? "connected" : "disconnected"
     });
+});
+
+  
+app.get("/api/offers/free-ride", requireLogin, async (req, res) => {
+    try {
+        const activeBooking = await Booking.exists({
+            user: req.session.userId,
+            status: "confirmed"
+        });
+
+        res.json({
+            available: !activeBooking,
+            discountAmount: activeBooking ? 0 : 100
+        });
+    } catch (error) {
+        console.error("Free ride offer check failed:", error);
+
+        res.status(500).json({
+            message: "Could not check the free ride offer."
+        });
+    }
 });
 
 // ========================================
@@ -654,10 +691,7 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
         const subtotal = vehicle.pricePerDay * days;
 
         // Validate the coupon on the server.
-        const coupon = getCouponQuote(
-            couponCode,
-            subtotal
-        );
+        const coupon = getCouponQuote(couponCode, subtotal);
 
         if (!coupon) {
             return res.status(400).json({
@@ -665,7 +699,23 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
             });
         }
 
-        // Save the discounted booking to MongoDB.
+        // Check whether this customer already has a confirmed booking.
+        const activeBooking = await Booking.exists({
+            user: req.session.userId,
+            status: "confirmed"
+        });
+
+        // Give the ₹100 benefit only when no confirmed booking exists.
+        const welcomeRideDiscount = activeBooking
+            ? 0
+            : Math.min(100, subtotal - coupon.discountAmount);
+
+        const total = Math.max(
+            0,
+            subtotal - coupon.discountAmount - welcomeRideDiscount
+        );
+
+        // Save the booking and discounts to MongoDB.
         const booking = await Booking.create({
             reference: `DE-${crypto.randomBytes(5).toString("hex").toUpperCase()}`,
             user: req.session.userId,
@@ -675,10 +725,11 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
             dropoff,
             days,
             pricePerDay: vehicle.pricePerDay,
-            subtotal: coupon.subtotal,
+            subtotal,
             couponCode: coupon.code || "",
             couponDiscount: coupon.discountAmount,
-            total: coupon.total,
+            welcomeRideDiscount,
+            total,
             status: "confirmed"
         });
 
@@ -696,6 +747,7 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
                 subtotal: booking.subtotal,
                 couponCode: booking.couponCode,
                 couponDiscount: booking.couponDiscount,
+                welcomeRideDiscount: booking.welcomeRideDiscount,
                 total: booking.total,
                 status: booking.status,
                 createdAt: booking.createdAt
@@ -710,38 +762,7 @@ app.post("/api/bookings", requireLogin, bookingLimiter, async (req, res) => {
         });
     }
 });
- 
 
-// ========================================
-// GET BOOKINGS FOR THE LOGGED-IN CUSTOMER
-// ========================================
-
-app.get("/api/bookings", requireLogin, async (req, res) => {
-    try {
-        const bookings = await Booking.find({ user: req.session.userId })
-            .sort({ createdAt: -1 })
-            .lean();
-
-        return res.json({
-            bookings: bookings.map(booking => ({
-                id: booking._id,
-                reference: booking.reference,
-                carName: booking.carName,
-                location: booking.location,
-                pickup: booking.pickup,
-                dropoff: booking.dropoff,
-                days: booking.days,
-                pricePerDay: booking.pricePerDay,
-                total: booking.total,
-                status: booking.status,
-                createdAt: booking.createdAt
-            }))
-        });
-    } catch (error) {
-        console.error("Get bookings error:", error.message);
-        return res.status(500).json({ message: "Unable to load your bookings." });
-    }
-});
 
 // ========================================
 // CANCEL A CUSTOMER'S OWN BOOKING

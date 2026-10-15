@@ -2867,3 +2867,150 @@ img {
         font-size: 17px;
     }
 }
+
+
+/* ========================================
+   DRIVE EASY — WELCOME OFFERS
+   ======================================== */
+
+.offers-section {
+    padding: 30px 7.5% 25px;
+    margin-bottom: 0;
+    background: #f7f9fd;
+    scroll-margin-top: 90px;
+}
+
+.offers-section .section-heading {
+    margin-bottom: 18px;
+}
+
+.offers-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 15px;
+}
+
+.offer-card {
+    position: relative;
+    width: 100%;
+    max-width: 650px;
+    padding: 22px;
+    background: #ffffff;
+    border: 1px solid #e5eaf1;
+    border-radius: 13px;
+    box-shadow: 0 3px 12px rgba(16, 40, 76, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.offer-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 20px;
+    width: 42px;
+    height: 3px;
+    background: #f52932;
+    border-radius: 0 0 4px 4px;
+}
+
+.offer-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(16, 40, 76, 0.09);
+}
+
+.offer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 12px;
+    border-radius: 11px;
+    background: #fff0f1;
+    font-size: 24px;
+}
+
+.offer-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #e32630;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+}
+
+.offer-card h3 {
+    margin: 0 0 8px;
+    color: #10284c;
+    font-size: 21px;
+    line-height: 1.4;
+}
+
+.offer-card p {
+    margin: 0 0 12px;
+    color: #62738e;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.offer-card small {
+    display: block;
+    padding-top: 10px;
+    border-top: 1px solid #edf0f5;
+    color: #78869a;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+#free-ride-offer-status:not(:empty) {
+    margin-top: 12px;
+    font-weight: 700;
+}
+
+/* Keep the offer and car sections spaced apart */
+#cars {
+    margin-top: 0;
+    padding-top: 25px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    .offers-section {
+        padding: 26px 5% 22px;
+    }
+
+    .offer-card {
+        padding: 19px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .offers-section {
+        padding: 22px 5% 18px;
+    }
+
+    .offer-card {
+        padding: 17px;
+    }
+
+    .offer-card h3 {
+        font-size: 19px;
+    }
+
+    .offer-card p {
+        font-size: 13px;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .offer-card {
+        transition: none;
+    }
+
+    .offer-card:hover {
+        transform: none;
+    }
+}

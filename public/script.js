@@ -501,7 +501,12 @@ function showCouponMessage(message, type = "info") {
     couponMessage.style.color = colors[type] || colors.info;
 }
 
-function renderPriceBreakdown(subtotal, discount, total) {
+function renderPriceBreakdown(
+    subtotal,
+    discount,
+    total,
+    welcomeRideDiscount = 0
+) {
     if (
         !priceBreakdown ||
         !rentalSubtotalElement ||
@@ -511,12 +516,24 @@ function renderPriceBreakdown(subtotal, discount, total) {
         return;
     }
 
+    const welcomeRideDiscountElement =
+        document.getElementById("welcome-ride-discount");
+
     rentalSubtotalElement.textContent = formatCurrency(subtotal);
-    couponDiscountElement.textContent = `−${formatCurrency(discount)}`;
+
+    couponDiscountElement.textContent =
+        `−${formatCurrency(discount)}`;
+
+    if (welcomeRideDiscountElement) {
+        welcomeRideDiscountElement.textContent =
+            `−${formatCurrency(welcomeRideDiscount)}`;
+    }
+
     finalTotalElement.textContent = formatCurrency(total);
 
     priceBreakdown.hidden = false;
 }
+
 
 // Apply, replace, or remove a coupon.
 applyCouponButton?.addEventListener("click", async () => {
@@ -593,7 +610,8 @@ applyCouponButton?.addEventListener("click", async () => {
         renderPriceBreakdown(
             appliedCoupon.subtotal,
             appliedCoupon.discountAmount,
-            appliedCoupon.total
+            appliedCoupon.total,
+            currentWelcomeRideDiscount || 0
         );
 
         showCouponMessage(
