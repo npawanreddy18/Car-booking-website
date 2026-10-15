@@ -248,6 +248,56 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    
+async function checkFreeRideOffer() {
+    const offersSection = document.getElementById("offers");
+    const offerCard = document.getElementById("free-ride-offer");
+    const welcomeRideRow = document.getElementById("welcome-ride-row");
+
+    try {
+        const response = await fetch("/api/offers/free-ride", {
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        // Keep the welcome offer visible for visitors who
+        // have not logged in yet.
+        if (response.status === 401) {
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error("Could not check the free-ride offer.");
+        }
+
+        const offer = await response.json();
+        const isAvailable = offer.available === true;
+
+        currentWelcomeRideDiscount = isAvailable
+            ? Number(offer.discountAmount) || 0
+            : 0;
+
+        // Hide the entire Welcome Offers section after the
+        // customer's first confirmed booking.
+        if (offersSection) {
+            offersSection.style.display = isAvailable ? "" : "none";
+        }
+
+        if (offerCard) {
+            offerCard.style.display = isAvailable ? "" : "none";
+        }
+
+        if (welcomeRideRow) {
+            welcomeRideRow.hidden = !isAvailable;
+        }
+    } catch (error) {
+        console.error("Free ride offer check failed:", error);
+    }
+}
+ 
+
     /* ========================================
        DATE INPUTS
        ======================================== */
@@ -466,7 +516,10 @@ document.addEventListener("click", function (event) {
        the discount. Never trust browser prices.
        ======================================== */
 
+
 function resetCoupon() {
+    const previousSubtotal = appliedCoupon?.subtotal;
+
     appliedCoupon = null;
 
     if (couponCodeInput) {
@@ -479,15 +532,20 @@ function resetCoupon() {
         applyCouponButton.textContent = "Apply";
     }
 
-    if (couponMessage) {
-        couponMessage.textContent = "";
-        couponMessage.style.color = "";
+    if (Number.isFinite(previousSubtotal)) {
+        const welcomeDiscount = currentWelcomeRideDiscount || 0;
+
+        renderPriceBreakdown(
+            previousSubtotal,
+            0,
+            Math.max(0, previousSubtotal - welcomeDiscount),
+            welcomeDiscount
+        );
     }
 
-    if (priceBreakdown) {
-        priceBreakdown.hidden = true;
-    }
+    showCouponMessage("");
 }
+
 
 function showCouponMessage(message, type = "info") {
     if (!couponMessage) return;
@@ -549,20 +607,15 @@ applyCouponButton?.addEventListener("click", async () => {
 
     // Empty input removes the current coupon.
     if (!couponCode) {
-        appliedCoupon = null;
+    resetCoupon();
 
-        if (priceBreakdown) {
-            priceBreakdown.hidden = true;
-        }
+    showCouponMessage(
+        "Coupon removed. Your free-ride benefit remains.",
+        "info"
+    );
 
-        if (applyCouponButton) {
-            applyCouponButton.disabled = false;
-            applyCouponButton.textContent = "Apply";
-        }
-
-        showCouponMessage("Coupon removed. No discount applied.", "info");
-        return;
-    }
+    return;
+}
 
     couponSubmitting = true;
     applyCouponButton.disabled = true;
@@ -608,12 +661,14 @@ applyCouponButton?.addEventListener("click", async () => {
             total: coupon.total
         };
 
-        renderPriceBreakdown(
-            appliedCoupon.subtotal,
-            appliedCoupon.discountAmount,
-            appliedCoupon.total,
-            currentWelcomeRideDiscount || 0
-        );
+       const welcomeDiscount = currentWelcomeRideDiscount || 0;
+
+renderPriceBreakdown(
+    appliedCoupon.subtotal,
+    appliedCoupon.discountAmount,
+    Math.max(0, appliedCoupon.total - welcomeDiscount),
+    welcomeDiscount
+);
 
         showCouponMessage(
             `Coupon ${appliedCoupon.code} applied successfully! You can change it anytime.`,
@@ -629,9 +684,7 @@ applyCouponButton?.addEventListener("click", async () => {
         // If a replacement coupon is invalid, don't keep the old discount.
         appliedCoupon = null;
 
-        if (priceBreakdown) {
-            priceBreakdown.hidden = true;
-        }
+        
 
         showCouponMessage(
             error.message || "Unable to apply this coupon.",
@@ -652,16 +705,29 @@ applyCouponButton?.addEventListener("click", async () => {
 
 // Remove the applied discount as soon as the customer edits the code.
 // They must click Apply to validate the replacement coupon.
-couponCodeInput?.addEventListener("input", () => {
-    if (!appliedCoupon) return;
 
+couponCodeInput?.addEventListener("input", () => {
+    if (!appliedCoupon) {
+        showCouponMessage("");
+        return;
+    }
+
+    const previousSubtotal = appliedCoupon.subtotal;
     appliedCoupon = null;
 
-    if (priceBreakdown) {
-        priceBreakdown.hidden = true;
+    if (Number.isFinite(previousSubtotal)) {
+        const welcomeDiscount = currentWelcomeRideDiscount || 0;
+
+        renderPriceBreakdown(
+            previousSubtotal,
+            0,
+            Math.max(0, previousSubtotal - welcomeDiscount),
+            welcomeDiscount
+        );
     }
 
     if (applyCouponButton) {
+        applyCouponButton.disabled = false;
         applyCouponButton.textContent = "Apply";
     }
 
@@ -819,8 +885,24 @@ if (
         
       
 .then(offer => {
-    currentWelcomeRideDiscount =
-        offer.available ? offer.discountAmount : 0;
+    
+currentWelcomeRideDiscount =
+    offer.available ? offer.discountAmount : 0;
+
+const welcomeRideRow = document.getElementById("welcome-ride-row");
+
+if (welcomeRideRow) {
+    welcomeRideRow.hidden = !offer.available;
+}
+
+
+
+const freeRideOfferCard = document.getElementById("free-ride-offer");
+
+if (freeRideOfferCard) {
+    freeRideOfferCard.style.display = offer.available ? "" : "none";
+}
+
 
     if (!selectedCar) return;
 
@@ -1505,6 +1587,7 @@ if (pendingCouponCode) {
                 renderProfile(result.user);
             } else {
                 await loadProfile();
+                
             }
 
             setProfileFeedback("Profile photo updated successfully.");
@@ -1625,6 +1708,11 @@ if (pendingCouponCode) {
 
     // On index.html, this updates the profile menu.
     loadProfile();
+
+    
+    // Check the welcome offer when the page loads.
+    checkFreeRideOffer();
+
 
     // On my-bookings.html, load the signed-in
     // customer's bookings from the backend.
