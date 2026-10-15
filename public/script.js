@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let appliedCoupon = null;
     let couponSubmitting = false;
+    let pendingCouponCode = "";
 
     /* ========================================
        GENERAL HELPERS
@@ -418,6 +419,46 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+      
+
+/* AVAILABLE COUPONS — USE BUTTONS */
+document.addEventListener("click", function (event) {
+    const button = event.target.closest(".use-coupon-button");
+
+   /* AVAILABLE COUPONS — USE BUTTONS */
+document.addEventListener("click", function (event) {
+    const button = event.target.closest(".use-coupon-button");
+
+    if (!button) return;
+
+    event.preventDefault();
+
+    const code = String(button.dataset.coupon || "")
+        .trim()
+        .toUpperCase();
+
+    if (!code) {
+        showCouponMessage("Coupon code is missing.", "error");
+        return;
+    }
+
+    if (!couponCodeInput || !applyCouponButton) {
+        showCouponMessage(
+            "Coupon input or Apply button is missing.",
+            "error"
+        );
+        return;
+    }
+
+    couponCodeInput.value = code;
+
+    applyCouponButton(`Coupon ${code} selected. Click Apply to use it.`,
+    "success");
+});
+
+});
+
+
     /* ========================================
        COUPON HANDLING
        The server validates coupons and calculates
@@ -734,20 +775,44 @@ couponCodeInput?.addEventListener("input", () => {
                 total: previewPrice * days
             };
 
-            renderBookingSummary(selectedCar);
-            clearMessage();
+            
+renderBookingSummary(selectedCar);
+clearMessage();
 
-            if (
-                bookingDialog &&
-                typeof bookingDialog.showModal === "function"
-            ) {
-                bookingDialog.showModal();
-            } else {
-                showMessage(
-                    "Your browser does not support the booking dialog.",
-                    "error"
-                );
-            }
+if (
+    bookingDialog &&
+    typeof bookingDialog.showModal === "function"
+) {
+    bookingDialog.showModal();
+
+    // Apply a coupon selected from Available Coupons.
+    
+if (pendingCouponCode) {
+    const codeToApply = pendingCouponCode;
+    pendingCouponCode = "";
+
+    if (couponCodeInput && applyCouponButton) {
+        couponCodeInput.value = codeToApply;
+
+        // Trigger the existing server-validation handler.
+        applyCouponButton.click();
+    } else {
+        showCouponMessage(
+            "Coupon input or Apply button is missing.",
+            "error"
+        );
+    }
+}
+
+}  
+
+    else {
+    showMessage(
+        "Your browser does not support the booking dialog.",
+        "error"
+    );
+}
+
         });
     });
 

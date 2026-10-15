@@ -2712,3 +2712,158 @@ img {
     }
 }
 
+
+/* =========================================
+   DRIVE EASY — PRICE BREAKDOWN ALIGNMENT FIX
+   ========================================= */
+
+#booking-dialog #price-breakdown {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 16px 0;
+    padding: 10px 14px;
+    border: 1px solid #e0e7f0;
+    border-radius: 12px;
+    background: #f8fafd;
+    overflow: hidden;
+}
+
+#booking-dialog #price-breakdown[hidden] {
+    display: none !important;
+}
+
+#booking-dialog #price-breakdown * {
+    box-sizing: border-box;
+}
+
+#booking-dialog #price-breakdown .price-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 10px 0;
+    color: #62748b;
+    font-size: 14px;
+    line-height: 1.5;
+    border-bottom: 1px solid #e9eef5;
+}
+
+#booking-dialog #price-breakdown .price-row > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#booking-dialog #price-breakdown .price-row strong {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 55%;
+    color: #17345c;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 700;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+/* Coupon discount */
+#booking-dialog #price-breakdown #coupon-discount {
+    color: #16845b;
+}
+
+/* Estimated total row */
+#booking-dialog #price-breakdown .price-total-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    margin: 6px 0 0;
+    padding: 13px 0 4px;
+    border-top: 1px solid #cbd8e8;
+    border-bottom: 0;
+    color: #17345c;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 800;
+}
+
+#booking-dialog #price-breakdown .price-total-row > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#booking-dialog #price-breakdown .price-total-row span {
+    color: #17345c;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 800;
+}
+
+/* Final amount */
+#booking-dialog #price-breakdown .price-total-row strong,
+#booking-dialog #price-breakdown #final-total {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 55%;
+    color: #17345c !important;
+    font-size: 19px;
+    line-height: 1.3;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+/* Keep the original booking summary colors */
+#booking-dialog #booking-summary {
+    --booking-total-color: #17345c;
+}
+
+#booking-dialog #booking-summary .estimated-total,
+#booking-dialog #booking-summary .total-price {
+    color: #17345c;
+}
+
+/* Small screens */
+@media (max-width: 600px) {
+    #booking-dialog #price-breakdown {
+        margin: 12px 0;
+        padding: 9px 11px;
+        border-radius: 10px;
+    }
+
+    #booking-dialog #price-breakdown .price-row {
+        gap: 8px;
+        padding: 9px 0;
+        font-size: 13px;
+    }
+
+    #booking-dialog #price-breakdown .price-row strong {
+        font-size: 13px;
+    }
+
+    #booking-dialog #price-breakdown .price-total-row {
+        gap: 8px;
+        padding-top: 11px;
+        font-size: 14px;
+    }
+
+    #booking-dialog #price-breakdown .price-total-row span {
+        font-size: 14px;
+    }
+
+    #booking-dialog #price-breakdown .price-total-row strong,
+    #booking-dialog #price-breakdown #final-total {
+        font-size: 17px;
+    }
+}
