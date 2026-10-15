@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let appliedCoupon = null;
     let couponSubmitting = false;
     let pendingCouponCode = "";
+    let currentWelcomeRideDiscount = 0;
 
     /* ========================================
        GENERAL HELPERS
@@ -802,6 +803,57 @@ if (
     typeof bookingDialog.showModal === "function"
 ) {
     bookingDialog.showModal();
+
+    
+    // Check Free 5 km Ride benefit availability.
+    currentWelcomeRideDiscount = 0;
+
+    fetch("/api/offers/free-ride")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Could not check the offer.");
+            }
+            return response.json();
+        })
+       
+        
+      
+.then(offer => {
+    currentWelcomeRideDiscount =
+        offer.available ? offer.discountAmount : 0;
+
+    if (!selectedCar) return;
+
+    const subtotal =
+        selectedCar.pricePerDay * selectedCar.days;
+
+    const couponDiscount = appliedCoupon
+        ? appliedCoupon.discountAmount
+        : 0;
+
+    const welcomeDiscount = Math.min(
+        currentWelcomeRideDiscount,
+        Math.max(0, subtotal - couponDiscount)
+    );
+
+    const total = Math.max(
+        0,
+        subtotal - couponDiscount - welcomeDiscount
+    );
+
+    renderPriceBreakdown(
+        subtotal,
+        couponDiscount,
+        total,
+        welcomeDiscount
+    );
+})
+
+        .catch(error => {
+            console.error("Free ride offer check failed:", error);
+            currentWelcomeRideDiscount = 0;
+        });
+
 
     // Apply a coupon selected from Available Coupons.
     
