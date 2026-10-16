@@ -976,6 +976,62 @@
     </div>
 </dialog>
 
+<!-- MY PROFILE DIALOG -->
+<dialog id="profile-edit-dialog">
+    <h2>My Profile</h2>
+
+    <form id="profile-edit-form">
+        <label for="profile-edit-name">Full Name</label>
+        <input id="profile-edit-name" name="name" type="text"
+               maxlength="100" required>
+
+        <label for="profile-edit-email">Email Address</label>
+        <input id="profile-edit-email" name="email" type="email"
+               maxlength="254" required>
+
+        <p id="profile-edit-message" role="status"></p>
+
+        <button id="profile-edit-save" type="submit">Save Changes</button>
+        <button id="profile-edit-cancel" type="button">Cancel</button>
+        <button id="profile-edit-close" type="button"
+                aria-label="Close profile editor">Close</button>
+    </form>
+</dialog>
+
+<!-- SAVED CARS DIALOG -->
+<dialog id="saved-cars-dialog">
+    <h2>My Saved Cars</h2>
+    <p id="saved-cars-message" role="status"></p>
+    <div id="saved-cars-list"></div>
+    <button id="saved-cars-close" type="button">Close</button>
+</dialog>
+
+<!-- ACCOUNT SETTINGS DIALOG -->
+<dialog id="account-settings-dialog">
+    <h2>Account Settings</h2>
+
+    <form id="change-password-form">
+        <label for="current-password">Current Password</label>
+        <input id="current-password" name="currentPassword"
+               type="password" autocomplete="current-password" required>
+
+        <label for="new-password">New Password</label>
+        <input id="new-password" name="newPassword"
+               type="password" minlength="8" maxlength="72"
+               autocomplete="new-password" required>
+
+        <label for="confirm-new-password">Confirm New Password</label>
+        <input id="confirm-new-password" type="password"
+               minlength="8" maxlength="72"
+               autocomplete="new-password" required>
+
+        <p id="account-settings-message" role="status"></p>
+
+        <button type="submit">Change Password</button>
+        <button id="account-settings-close" type="button">Close</button>
+    </form>
+</dialog>
+
 
 </body>
 </html>

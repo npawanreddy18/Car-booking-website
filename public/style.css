@@ -3014,3 +3014,211 @@ img {
         transform: none;
     }
 }
+
+
+/* ========================================
+   DRIVE EASY — CUSTOMER PROFILE DIALOGS
+   ======================================== */
+
+#profile-edit-dialog,
+#saved-cars-dialog,
+#account-settings-dialog {
+    width: min(92%, 460px);
+    max-width: 460px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    color: #172033;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+    font-family: inherit;
+}
+
+#profile-edit-dialog::backdrop,
+#saved-cars-dialog::backdrop,
+#account-settings-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+#profile-edit-dialog h2,
+#saved-cars-dialog h2,
+#account-settings-dialog h2 {
+    margin: 0 0 22px;
+    color: #172033;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+#profile-edit-form,
+#change-password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#profile-edit-form label,
+#change-password-form label {
+    margin-top: 5px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#profile-edit-form input,
+#change-password-form input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #172033;
+    font: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#profile-edit-form input:focus,
+#change-password-form input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
+}
+
+#profile-edit-message,
+#account-settings-message,
+#saved-cars-message {
+    min-height: 20px;
+    margin: 8px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+#profile-edit-form button,
+#change-password-form button,
+#saved-cars-dialog > button,
+.saved-car-item button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+#profile-edit-save,
+#change-password-form button[type="submit"] {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+#profile-edit-save:hover,
+#change-password-form button[type="submit"]:hover {
+    background: #1d4ed8;
+}
+
+#profile-edit-cancel,
+#profile-edit-close,
+#saved-cars-close,
+#account-settings-close {
+    border-color: #cbd5e1 !important;
+    background: #ffffff;
+    color: #334155;
+}
+
+#profile-edit-cancel:hover,
+#profile-edit-close:hover,
+#saved-cars-close:hover,
+#account-settings-close:hover {
+    background: #f1f5f9;
+}
+
+#profile-edit-form button:disabled,
+#change-password-form button:disabled,
+.saved-car-item button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Minimal heart icon on car cards */
+.save-car-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid #e5e5e5;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #222222;
+    font-family: Arial, sans-serif;
+    font-size: 27px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease,
+                background 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+}
+
+.save-car-button:hover {
+    border-color: #f2b8bd;
+    background: #fff5f6;
+    color: #e58b95;
+    transform: scale(1.06);
+}
+
+/* Light red after the car is saved */
+.save-car-button.is-saved {
+    border-color: #f5c6cb;
+    background: #fff0f1;
+    color: #e57380;
+}
+
+.save-car-button.is-saved:hover {
+    background: #ffe3e6;
+    color: #d95767;
+}
+
+.save-car-button:focus-visible {
+    outline: 2px solid #e57380;
+    outline-offset: 3px;
+}
+
+/* Mobile layout */
+
+@media (max-width: 480px) {
+    #profile-edit-dialog,
+    #saved-cars-dialog,
+    #account-settings-dialog {
+        box-sizing: border-box;
+        width: calc(100% - 24px);
+        max-width: none;
+        padding: 21px;
+        border-radius: 14px;
+    }
+
+    #profile-edit-dialog h2,
+    #saved-cars-dialog h2,
+    #account-settings-dialog h2 {
+        font-size: 21px;
+    }
+
+    .saved-car-item {
+        align-items: flex-start;
+    }
+
+    .save-car-button {
+        margin-left: 0;
+    }
+}

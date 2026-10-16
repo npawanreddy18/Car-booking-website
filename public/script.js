@@ -1669,6 +1669,356 @@ if (pendingCouponCode) {
         });
     });
 
+     
+/* ========================================
+   CUSTOMER PROFILE: SAVED CARS + SETTINGS
+   ======================================== */
+
+const savedCarsDialog = $("#saved-cars-dialog");
+const savedCarsList = $("#saved-cars-list");
+const savedCarsMessage = $("#saved-cars-message");
+const savedCarsClose = $("#saved-cars-close");
+
+const accountSettingsDialog = $("#account-settings-dialog");
+const accountSettingsClose = $("#account-settings-close");
+const changePasswordForm = $("#change-password-form");
+const accountSettingsMessage = $("#account-settings-message");
+
+let savedCarNames = new Set();
+let savedCarsLoading = false;
+
+// Show a status message inside the Saved Cars dialog.
+function showSavedCarsMessage(message, isError = false) {
+    if (!savedCarsMessage) return;
+
+    savedCarsMessage.textContent = message;
+    savedCarsMessage.style.color = isError ? "#c82029" : "#475569";
+}
+
+// Add Save Car buttons to the existing vehicle cards.
+carCards.forEach(card => {
+    const bookButton = card.querySelector(".book-button");
+    const carName = bookButton?.dataset.car;
+
+    if (!carName || card.querySelector(".save-car-button")) return;
+
+   const saveButton = document.createElement("button");
+saveButton.type = "button";
+saveButton.className = "save-car-button";
+saveButton.setAttribute("aria-label", `Save ${carName}`);
+saveButton.setAttribute("aria-pressed", "false");
+saveButton.innerHTML = "♡";
+saveButton.title = "Save car";
+
+    bookButton.insertAdjacentElement("afterend", saveButton);
+});
+
+// Refresh the button labels to match the saved cars.
+function updateSaveCarButtons() {
+    $$(".save-car-button").forEach(button => {
+        const isSaved = savedCarNames.has(button.dataset.car);
+
+        button.textContent = isSaved ? "♥ Saved" : "♡ Save Car";
+        button.setAttribute(
+            "aria-label",
+            `${isSaved ? "Remove" : "Save"} ${button.dataset.car}`
+        );
+    });
+}
+
+// Load the current customer's saved cars from MongoDB.
+async function loadSavedCars() {
+    if (savedCarsLoading) return;
+
+    savedCarsLoading = true;
+
+    if (savedCarsList) {
+        savedCarsList.replaceChildren();
+    }
+
+    showSavedCarsMessage("Loading your saved cars...");
+
+    try {
+        const result = await api("/api/auth/saved-cars");
+
+        savedCarNames = new Set(
+            Array.isArray(result.savedCars) ? result.savedCars : []
+        );
+
+        updateSaveCarButtons();
+        renderSavedCars();
+    } catch (error) {
+        showSavedCarsMessage(
+            error.message || "Unable to load your saved cars.",
+            true
+        );
+    } finally {
+        savedCarsLoading = false;
+    }
+}
+
+// Render saved vehicles with a Remove button.
+function renderSavedCars() {
+    if (!savedCarsList) return;
+
+    savedCarsList.replaceChildren();
+
+    if (savedCarNames.size === 0) {
+        showSavedCarsMessage(
+            "You haven't saved any cars yet. Browse the cars and select Save Car."
+        );
+        return;
+    }
+
+    showSavedCarsMessage("");
+
+    [...savedCarNames].forEach(carName => {
+        const item = document.createElement("div");
+        item.className = "saved-car-item";
+
+        const name = document.createElement("span");
+        name.textContent = carName;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.textContent = "Remove";
+        removeButton.addEventListener("click", async () => {
+            removeButton.disabled = true;
+
+            try {
+                const result = await api("/api/auth/saved-cars", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        carName,
+                        action: "remove"
+                    })
+                });
+
+                savedCarNames = new Set(result.savedCars || []);
+                updateSaveCarButtons();
+                renderSavedCars();
+            } catch (error) {
+                showSavedCarsMessage(
+                    error.message || "Unable to remove this car.",
+                    true
+                );
+                removeButton.disabled = false;
+            }
+        });
+
+        item.append(name, removeButton);
+        savedCarsList.appendChild(item);
+    });
+}
+
+// Save or remove a car from a vehicle card.
+document.addEventListener("click", async event => {
+    const button = event.target.closest(".save-car-button");
+
+    if (!button) return;
+
+    event.preventDefault();
+
+    if (!currentUser) {
+        window.location.href =
+            "./login.html?returnTo=%2Findex.html%23cars";
+        return;
+    }
+
+    const carName = button.dataset.car;
+    const action = savedCarNames.has(carName) ? "remove" : "save";
+
+    button.disabled = true;
+
+    try {
+        const result = await api("/api/auth/saved-cars", {
+            method: "POST",
+            body: JSON.stringify({ carName, action })
+        });
+
+        savedCarNames = new Set(result.savedCars || []);
+        updateSaveCarButtons();
+
+        if (savedCarsDialog?.open) {
+            renderSavedCars();
+        }
+
+        setProfileFeedback(
+            action === "save"
+                ? `${carName} added to Saved Cars.`
+                : `${carName} removed from Saved Cars.`
+        );
+    } catch (error) {
+        window.alert(error.message || "Unable to update Saved Cars.");
+    } finally {
+        button.disabled = false;
+    }
+});
+
+// Close the Saved Cars dialog.
+savedCarsClose?.addEventListener("click", () => {
+    savedCarsDialog?.close();
+});
+
+savedCarsDialog?.addEventListener("click", event => {
+    if (event.target === savedCarsDialog) {
+        savedCarsDialog.close();
+    }
+});
+
+// Close the Account Settings dialog.
+accountSettingsClose?.addEventListener("click", () => {
+    accountSettingsDialog?.close();
+});
+
+accountSettingsDialog?.addEventListener("click", event => {
+    if (event.target === accountSettingsDialog) {
+        accountSettingsDialog.close();
+    }
+});
+
+// Change password through the Express backend.
+changePasswordForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    if (!changePasswordForm.reportValidity()) return;
+
+    const currentPassword = $("#current-password")?.value || "";
+    const newPassword = $("#new-password")?.value || "";
+    const confirmPassword = $("#confirm-new-password")?.value || "";
+
+    if (newPassword !== confirmPassword) {
+        if (accountSettingsMessage) {
+            accountSettingsMessage.textContent =
+                "The new passwords do not match.";
+            accountSettingsMessage.style.color = "#c82029";
+        }
+        return;
+    }
+
+    const submitButton = changePasswordForm.querySelector(
+        'button[type="submit"]'
+    );
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Updating...";
+    }
+
+    if (accountSettingsMessage) {
+        accountSettingsMessage.textContent = "Updating your password...";
+        accountSettingsMessage.style.color = "#475569";
+    }
+
+    try {
+        const result = await api("/api/auth/password", {
+            method: "PATCH",
+            body: JSON.stringify({
+                currentPassword,
+                newPassword
+            })
+        });
+
+        changePasswordForm.reset();
+
+        if (accountSettingsMessage) {
+            accountSettingsMessage.textContent =
+                result.message || "Password changed successfully.";
+            accountSettingsMessage.style.color = "#16803c";
+        }
+    } catch (error) {
+        if (accountSettingsMessage) {
+            accountSettingsMessage.textContent =
+                error.message || "Unable to change your password.";
+            accountSettingsMessage.style.color = "#c82029";
+        }
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = "Change Password";
+        }
+    }
+});
+
+/* ========================================
+   PROFILE MENU ACTIONS
+   ======================================== */
+
+$$("[data-profile-action]").forEach(button => {
+    button.addEventListener("click", async () => {
+        const action = button.dataset.profileAction;
+
+        closeProfileDropdown();
+
+        if (!currentUser) {
+            setProfileFeedback("Please log in first.", true);
+            return;
+        }
+
+        if (action === "my-profile") {
+            if (
+                !profileEditDialog ||
+                !profileEditName ||
+                !profileEditEmail
+            ) {
+                setProfileFeedback(
+                    "The profile editor could not be found.",
+                    true
+                );
+                return;
+            }
+
+            profileEditName.value = currentUser.name || "";
+            profileEditEmail.value = currentUser.email || "";
+
+            if (profileEditMessage) {
+                profileEditMessage.textContent = "";
+            }
+
+            if (typeof profileEditDialog.showModal === "function") {
+                profileEditDialog.showModal();
+                profileEditName.focus();
+            }
+
+            return;
+        }
+
+        if (action === "bookings") {
+            window.location.href = "./my-bookings.html";
+            return;
+        }
+
+        if (action === "saved-cars") {
+            if (!savedCarsDialog) {
+                setProfileFeedback("Saved Cars dialog could not be found.", true);
+                return;
+            }
+
+            savedCarsDialog.showModal();
+            await loadSavedCars();
+            return;
+        }
+
+        if (action === "settings") {
+            if (!accountSettingsDialog) {
+                setProfileFeedback(
+                    "Account Settings dialog could not be found.",
+                    true
+                );
+                return;
+            }
+
+            if (accountSettingsMessage) {
+                accountSettingsMessage.textContent = "";
+            }
+
+            changePasswordForm?.reset();
+            accountSettingsDialog.showModal();
+        }
+    });
+});
+
+
     /* ========================================
        LOG OUT
        ======================================== */

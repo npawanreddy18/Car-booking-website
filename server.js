@@ -53,7 +53,15 @@ const User = mongoose.model("User", new mongoose.Schema({
         lowercase: true, trim: true, maxlength: 254
     },
     passwordHash: { type: String, required: true },
-    profilePhoto: { type: String, default: "" }
+    profilePhoto: { type: String, default: "" },
+savedCars: {
+    type: [String],
+    default: [],
+    validate: {
+        validator: cars => cars.every(car => Boolean(VEHICLES[car])),
+        message: "One or more saved cars are invalid."
+    }
+}
 }, { timestamps: true }));
 
 // ========================================
@@ -437,6 +445,150 @@ app.get("/api/auth/me", async (req, res) => {
         return res.status(500).json({ message: "Unable to check login status." });
     }
 });
+
+   // ========================================
+// SAVED CARS
+// ========================================
+
+app.get("/api/auth/saved-cars", requireLogin, async (req, res) => {
+    try {
+        const user = await User.findById(req.session.userId)
+            .select("savedCars");
+
+        if (!user) {
+            return res.status(401).json({
+                message: "Account not found. Please log in again."
+            });
+        }
+
+        return res.json({
+            savedCars: Array.isArray(user.savedCars)
+                ? user.savedCars
+                : []
+        });
+    } catch (error) {
+        console.error("Load saved cars error:", error.message);
+        return res.status(500).json({
+            message: "Unable to load saved cars."
+        });
+    }
+});
+
+app.post("/api/auth/saved-cars", requireLogin, async (req, res) => {
+    try {
+        const { carName, action } = req.body || {};
+
+        if (
+            typeof carName !== "string" ||
+            !Object.prototype.hasOwnProperty.call(VEHICLES, carName)
+        ) {
+            return res.status(400).json({
+                message: "Please select a valid car."
+            });
+        }
+
+        if (!["save", "remove"].includes(action)) {
+            return res.status(400).json({
+                message: "Invalid saved-car action."
+            });
+        }
+
+        const user = await User.findById(req.session.userId);
+
+        if (!user) {
+            return res.status(401).json({
+                message: "Account not found. Please log in again."
+            });
+        }
+
+        const savedCars = new Set(user.savedCars || []);
+
+        if (action === "save") {
+            savedCars.add(carName);
+        } else {
+            savedCars.delete(carName);
+        }
+
+        user.savedCars = [...savedCars];
+        await user.save();
+
+        return res.json({
+            message: action === "save"
+                ? "Car saved successfully."
+                : "Car removed from saved cars.",
+            savedCars: user.savedCars
+        });
+    } catch (error) {
+        console.error("Save car error:", error.message);
+        return res.status(500).json({
+            message: "Unable to update saved cars."
+        });
+    }
+});
+
+// ========================================
+// CHANGE ACCOUNT PASSWORD
+// ========================================
+
+app.patch(
+    "/api/auth/password",
+    requireLogin,
+    authLimiter,
+    async (req, res) => {
+        try {
+            const { currentPassword, newPassword } = req.body || {};
+
+            if (
+                typeof currentPassword !== "string" ||
+                typeof newPassword !== "string"
+            ) {
+                return res.status(400).json({
+                    message: "Enter your current and new passwords."
+                });
+            }
+
+            if (
+                newPassword.length < 8 ||
+                newPassword.length > 72
+            ) {
+                return res.status(400).json({
+                    message: "Your new password must be 8–72 characters."
+                });
+            }
+
+            const user = await User.findById(req.session.userId);
+
+            if (!user) {
+                return res.status(401).json({
+                    message: "Account not found. Please log in again."
+                });
+            }
+
+            const matches = await bcrypt.compare(
+                currentPassword,
+                user.passwordHash
+            );
+
+            if (!matches) {
+                return res.status(400).json({
+                    message: "Your current password is incorrect."
+                });
+            }
+
+            user.passwordHash = await bcrypt.hash(newPassword, 12);
+            await user.save();
+
+            return res.json({
+                message: "Password changed successfully."
+            });
+        } catch (error) {
+            console.error("Password change error:", error.message);
+            return res.status(500).json({
+                message: "Unable to change your password."
+            });
+        }
+    }
+);
 
 // ========================================
 // UPDATE PROFILE
